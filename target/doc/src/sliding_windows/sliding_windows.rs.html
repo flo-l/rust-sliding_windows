@@ -248,7 +248,7 @@
 
 <span class='doccomment'>/// This holds the backing allocation for the `Window` of a `SlidingWindowAdaptor`.</span>
 <span class='doccomment'>/// </span>
-<span class='doccomment'>/// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information.</span>
+<span class='doccomment'>/// See [sliding_windows](index.html) for more information.</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>SlidingWindowStorage</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
     <span class='ident'>window_size</span>: <span class='ident'>usize</span>,
     <span class='doccomment'>/// acts as a refcount</span>
@@ -265,7 +265,7 @@ impl !Sync for SlidingWindowStorage {}
     <span class='doccomment'>/// Create a new `SlidingWindowStorage` with a given window size.</span>
     <span class='doccomment'>/// This will allocate as much memory as is needed to store the Window automatically.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information.</span>
+    <span class='doccomment'>/// See [sliding_windows](index.html) for more information.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>window_size</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>SlidingWindowStorage</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
         <span class='ident'>SlidingWindowStorage</span>::<span class='ident'>from_vec</span>(<span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='ident'>window_size</span>), <span class='ident'>window_size</span>)
     }
@@ -274,7 +274,7 @@ impl !Sync for SlidingWindowStorage {}
     <span class='doccomment'>/// The contents of the Vec will be removed.</span>
     <span class='doccomment'>/// This will reuse the allocation of the Vec instead of allocating new memory.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information.</span>
+    <span class='doccomment'>/// See [sliding_windows](index.html) for more information.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>from_vec</span>(<span class='ident'>vec</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>, <span class='ident'>window_size</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>SlidingWindowStorage</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
         <span class='ident'>SlidingWindowStorage</span> {
             <span class='ident'>window_size</span>: <span class='ident'>window_size</span>,
@@ -348,7 +348,7 @@ impl !Sync for SlidingWindowStorage {}
 <span class='doccomment'>/// }</span>
 <span class='doccomment'>/// ```</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information.</span>
+<span class='doccomment'>/// See [sliding_windows](index.html) for more information. </span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Window</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>: <span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> {
     <span class='ident'>drop_flag</span>: <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>Cell</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span>,
     <span class='ident'>data</span>: <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>UnsafeCell</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span>,

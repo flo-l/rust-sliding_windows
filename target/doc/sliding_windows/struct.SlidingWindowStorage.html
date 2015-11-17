@@ -50,18 +50,18 @@
     // some fields omitted
 }</pre><div class='docblock'><p>This holds the backing allocation for the <code>Window</code> of a <code>SlidingWindowAdaptor</code>.</p>
 
-<p>See <a href="trait.Itertools.html#method.sliding_windows"><code>.sliding_windows()</code></a> for more information.</p>
+<p>See <a href="index.html">sliding_windows</a> for more information.</p>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='struct' href='../sliding_windows/struct.SlidingWindowStorage.html' title='sliding_windows::SlidingWindowStorage'>SlidingWindowStorage</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(window_size: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../sliding_windows/struct.SlidingWindowStorage.html' title='sliding_windows::SlidingWindowStorage'>SlidingWindowStorage</a>&lt;T&gt;</code></h4>
 <div class='docblock'><p>Create a new <code>SlidingWindowStorage</code> with a given window size.
 This will allocate as much memory as is needed to store the Window automatically.</p>
 
-<p>See <a href="trait.Itertools.html#method.sliding_windows"><code>.sliding_windows()</code></a> for more information.</p>
+<p>See <a href="index.html">sliding_windows</a> for more information.</p>
 </div><h4 id='method.from_vec' class='method'><code>fn <a href='#method.from_vec' class='fnname'>from_vec</a>(vec: <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;T&gt;, window_size: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../sliding_windows/struct.SlidingWindowStorage.html' title='sliding_windows::SlidingWindowStorage'>SlidingWindowStorage</a>&lt;T&gt;</code></h4>
 <div class='docblock'><p>Create a new <code>SlidingWindowStorage</code> with a given window size from a given <code>Vec</code>.
 The contents of the Vec will be removed.
 This will reuse the allocation of the Vec instead of allocating new memory.</p>
 
-<p>See <a href="trait.Itertools.html#method.sliding_windows"><code>.sliding_windows()</code></a> for more information.</p>
+<p>See <a href="index.html">sliding_windows</a> for more information.</p>
 </div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/convert/trait.Into.html' title='core::convert::Into'>Into</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;T&gt;&gt; for <a class='struct' href='../sliding_windows/struct.SlidingWindowStorage.html' title='sliding_windows::SlidingWindowStorage'>SlidingWindowStorage</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.into' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.Into.html#method.into' class='fnname'>into</a>(self) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;T&gt;</code></h4>
 </div></section>
     <section id='search' class="content hidden"></section>

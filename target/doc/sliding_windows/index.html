@@ -45,8 +45,76 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/sliding_windows/lib.rs.html#1-94' title='goto source code'>[src]</a></span></h1>
-<h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+        </span><a id='src-0' class='srclink' href='../src/sliding_windows/lib.rs.html#1-95' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>This crate provides an iterator adaptor that yields sliding windows into the elements of the wrapped Iterator.</p>
+
+<p>Note that this adaptor does <strong>NOT</strong> clone the whole window on every call to <code>next()</code>.</p>
+
+<p>Iterator element type is <code>Window&lt;&#39;a, Self::Item&gt;</code>.</p>
+
+<p>Note: <code>Window&lt;&#39;a, Self::Item&gt;</code> dereferences to <code>&amp;&#39;a [Self::Item]</code> or <code>&amp;&#39;a mut [Self::Item]</code></p>
+
+<p>This iterator is <em>fused</em>.</p>
+
+<h1 id='example' class='section-header'><a href='#example'>Example:</a></h1><pre class='rust rust-example-rendered'>
+<span class='kw'>use</span> <span class='ident'>sliding_windows</span>::<span class='ident'>IterExt</span>;
+<span class='kw'>use</span> <span class='ident'>sliding_windows</span>::<span class='ident'>SlidingWindowStorage</span>;
+
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>storage</span>: <span class='ident'>SlidingWindowStorage</span><span class='op'>&lt;</span><span class='ident'>u32</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>SlidingWindowStorage</span>::<span class='ident'>new</span>(<span class='number'>3</span>);
+<span class='kw'>let</span> <span class='ident'>windowed_iter</span> <span class='op'>=</span> (<span class='number'>0</span>..<span class='number'>5</span>).<span class='ident'>sliding_windows</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>storage</span>);
+<span class='kw'>let</span> <span class='ident'>output</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u32</span><span class='op'>&gt;&gt;</span> <span class='op'>=</span> <span class='ident'>windowed_iter</span>.<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>x</span><span class='op'>|</span> <span class='ident'>From</span>::<span class='ident'>from</span>(<span class='kw-2'>&amp;</span><span class='ident'>x</span>[..])).<span class='ident'>collect</span>();
+<span class='kw'>let</span> <span class='ident'>expected</span>: <span class='kw-2'>&amp;</span>[<span class='kw-2'>&amp;</span>[<span class='ident'>u32</span>]] <span class='op'>=</span> <span class='kw-2'>&amp;</span>[<span class='kw-2'>&amp;</span>[<span class='number'>0</span>,<span class='number'>1</span>,<span class='number'>2</span>], <span class='kw-2'>&amp;</span>[<span class='number'>1</span>,<span class='number'>2</span>,<span class='number'>3</span>], <span class='kw-2'>&amp;</span>[<span class='number'>2</span>,<span class='number'>3</span>,<span class='number'>4</span>]];
+
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>output</span>, <span class='ident'>expected</span>);</pre>
+
+<p>It&#39;s also possible to reuse an allocation for <code>SlidingWindowStorage</code> via the <code>Into</code> trait.</p>
+
+<h1 id='example-1' class='section-header'><a href='#example-1'>Example:</a></h1><pre class='rust rust-example-rendered'>
+<span class='kw'>use</span> <span class='ident'>sliding_windows</span>::<span class='ident'>IterExt</span>;
+<span class='kw'>use</span> <span class='ident'>sliding_windows</span>::<span class='ident'>SlidingWindowStorage</span>;
+
+<span class='kw'>let</span> <span class='ident'>previous_alloca</span> <span class='op'>=</span> <span class='macro'>vec</span><span class='macro'>!</span>[<span class='number'>0u32</span>; <span class='number'>3</span>]; <span class='comment'>// length doesn&#39;t have to be equal to window_size</span>
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>storage</span>: <span class='ident'>SlidingWindowStorage</span><span class='op'>&lt;</span><span class='ident'>u32</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>SlidingWindowStorage</span>::<span class='ident'>from_vec</span>(<span class='ident'>previous_alloca</span>, <span class='number'>3</span>);
+<span class='kw'>let</span> <span class='ident'>expected</span>: <span class='kw-2'>&amp;</span>[<span class='kw-2'>&amp;</span>[<span class='ident'>u32</span>]] <span class='op'>=</span> <span class='kw-2'>&amp;</span>[<span class='kw-2'>&amp;</span>[<span class='number'>0</span>,<span class='number'>1</span>,<span class='number'>2</span>], <span class='kw-2'>&amp;</span>[<span class='number'>1</span>,<span class='number'>2</span>,<span class='number'>3</span>], <span class='kw-2'>&amp;</span>[<span class='number'>2</span>,<span class='number'>3</span>,<span class='number'>4</span>]];
+
+<span class='comment'>// extra scope so that windowed_iter doesn&#39;t outlive storage.into() call</span>
+{
+    <span class='kw'>let</span> <span class='ident'>windowed_iter</span> <span class='op'>=</span> (<span class='number'>0</span>..<span class='number'>5</span>).<span class='ident'>sliding_windows</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>storage</span>);
+    <span class='kw'>let</span> <span class='ident'>output</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u32</span><span class='op'>&gt;&gt;</span> <span class='op'>=</span> <span class='ident'>windowed_iter</span>.<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>x</span><span class='op'>|</span> <span class='ident'>From</span>::<span class='ident'>from</span>(<span class='kw-2'>&amp;</span><span class='ident'>x</span>[..])).<span class='ident'>collect</span>();
+    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>output</span>, <span class='ident'>expected</span>);
+}
+
+<span class='kw'>let</span> <span class='ident'>reusing_alloca</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u32</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>storage</span>.<span class='ident'>into</span>();
+<span class='comment'>// keep using allocation of storage</span>
+ </pre>
+
+<h3 id='panics' class='section-header'><a href='#panics'>Panics:</a></h3>
+<p>As this iterator reuses the allocation for the yielded <code>Window</code>, no two instances of <code>Window</code>
+belonging to the same iterator may exist simultaneously. This is checked at runtime.</p>
+<pre class='rust rust-example-rendered'>
+<span class='kw'>use</span> <span class='ident'>sliding_windows</span>::<span class='ident'>IterExt</span>;
+<span class='kw'>use</span> <span class='ident'>sliding_windows</span>::<span class='ident'>SlidingWindowStorage</span>;
+
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>storage</span>: <span class='ident'>SlidingWindowStorage</span><span class='op'>&lt;</span><span class='ident'>u32</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>SlidingWindowStorage</span>::<span class='ident'>new</span>(<span class='number'>3</span>);
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>windowed_iter</span> <span class='op'>=</span> (<span class='number'>0</span>..<span class='number'>5</span>).<span class='ident'>sliding_windows</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>storage</span>);
+
+<span class='comment'>// extra scope so that a doesn&#39;t live until the for loop</span>
+{
+    <span class='kw'>let</span> <span class='ident'>a</span> <span class='op'>=</span> <span class='ident'>windowed_iter</span>.<span class='ident'>next</span>();
+    <span class='comment'>//let b = windowed_iter.next(); =&gt; this would PANIC</span>
+}
+ 
+<span class='comment'>// looping for example is fine though</span>
+<span class='kw'>for</span> _ <span class='kw'>in</span> <span class='ident'>windowed_iter</span> {
+    <span class='comment'>// blah</span>
+}</pre>
+
+<h1 id='mutable-window' class='section-header'><a href='#mutable-window'>Mutable Window:</a></h1>
+<p>Window does not only dereference to an immutable slice of <code>Self::Item</code>, it also dereferences
+to a mutable slice of <code>Self::Item</code>. Items of the mutable slice may be mutated freely.</p>
+
+<p>However be aware that changes made to the items in the Window are persistent through calls to <code>next()</code>.</p>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
                     <tr class=' module-item'>
                         <td><a class='struct' href='struct.SlidingWindowAdaptor.html'

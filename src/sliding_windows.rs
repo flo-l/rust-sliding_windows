@@ -4,7 +4,7 @@ use std::fmt;
 
 /// This holds the backing allocation for the `Window` of a `SlidingWindowAdaptor`.
 /// 
-/// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information.
+/// See [sliding_windows](index.html) for more information.
 pub struct SlidingWindowStorage<T> {
     window_size: usize,
     /// acts as a refcount
@@ -21,7 +21,7 @@ impl<T> SlidingWindowStorage<T> {
     /// Create a new `SlidingWindowStorage` with a given window size.
     /// This will allocate as much memory as is needed to store the Window automatically.
     ///
-    /// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information.
+    /// See [sliding_windows](index.html) for more information.
     pub fn new(window_size: usize) -> SlidingWindowStorage<T> {
         SlidingWindowStorage::from_vec(Vec::with_capacity(window_size), window_size)
     }
@@ -30,7 +30,7 @@ impl<T> SlidingWindowStorage<T> {
     /// The contents of the Vec will be removed.
     /// This will reuse the allocation of the Vec instead of allocating new memory.
     ///
-    /// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information.
+    /// See [sliding_windows](index.html) for more information.
     pub fn from_vec(vec: Vec<T>, window_size: usize) -> SlidingWindowStorage<T> {
         SlidingWindowStorage {
             window_size: window_size,
@@ -104,7 +104,7 @@ impl<T> Into<Vec<T>> for SlidingWindowStorage<T> {
 /// }
 /// ```
 ///
-/// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information.
+/// See [sliding_windows](index.html) for more information. 
 pub struct Window<'a, T: 'a> {
     drop_flag: &'a Cell<bool>,
     data: &'a UnsafeCell<Vec<T>>,

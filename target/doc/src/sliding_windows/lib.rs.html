@@ -134,7 +134,86 @@
 <span id="92">92</span>
 <span id="93">93</span>
 <span id="94">94</span>
+<span id="95">95</span>
 </pre><pre class='rust '>
+<span class='doccomment'>//! This crate provides an iterator adaptor that yields sliding windows into the elements of the wrapped Iterator.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! Note that this adaptor does **NOT** clone the whole window on every call to `next()`.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! Iterator element type is `Window&lt;&#39;a, Self::Item&gt;`.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! Note: `Window&lt;&#39;a, Self::Item&gt;` dereferences to `&amp;&#39;a [Self::Item]` or `&amp;&#39;a mut [Self::Item]`</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! This iterator is *fused*.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! # Example:</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! ```</span>
+<span class='doccomment'>//! use sliding_windows::IterExt;</span>
+<span class='doccomment'>//! use sliding_windows::SlidingWindowStorage;</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! let mut storage: SlidingWindowStorage&lt;u32&gt; = SlidingWindowStorage::new(3);</span>
+<span class='doccomment'>//! let windowed_iter = (0..5).sliding_windows(&amp;mut storage);</span>
+<span class='doccomment'>//! let output: Vec&lt;Vec&lt;u32&gt;&gt; = windowed_iter.map(|x| From::from(&amp;x[..])).collect();</span>
+<span class='doccomment'>//! let expected: &amp;[&amp;[u32]] = &amp;[&amp;[0,1,2], &amp;[1,2,3], &amp;[2,3,4]];</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! assert_eq!(output, expected);</span>
+<span class='doccomment'>//! ```</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! It&#39;s also possible to reuse an allocation for `SlidingWindowStorage` via the `Into` trait.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! # Example:</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! ```</span>
+<span class='doccomment'>//! use sliding_windows::IterExt;</span>
+<span class='doccomment'>//! use sliding_windows::SlidingWindowStorage;</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! let previous_alloca = vec![0u32; 3]; // length doesn&#39;t have to be equal to window_size</span>
+<span class='doccomment'>//! let mut storage: SlidingWindowStorage&lt;u32&gt; = SlidingWindowStorage::from_vec(previous_alloca, 3);</span>
+<span class='doccomment'>//! let expected: &amp;[&amp;[u32]] = &amp;[&amp;[0,1,2], &amp;[1,2,3], &amp;[2,3,4]];</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! // extra scope so that windowed_iter doesn&#39;t outlive storage.into() call</span>
+<span class='doccomment'>//! {</span>
+<span class='doccomment'>//!     let windowed_iter = (0..5).sliding_windows(&amp;mut storage);</span>
+<span class='doccomment'>//!     let output: Vec&lt;Vec&lt;u32&gt;&gt; = windowed_iter.map(|x| From::from(&amp;x[..])).collect();</span>
+<span class='doccomment'>//!     assert_eq!(output, expected);</span>
+<span class='doccomment'>//! }</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! let reusing_alloca: Vec&lt;u32&gt; = storage.into();</span>
+<span class='doccomment'>//! // keep using allocation of storage</span>
+<span class='doccomment'>//! </span>
+<span class='doccomment'>//! ```</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! ### Panics:</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! As this iterator reuses the allocation for the yielded `Window`, no two instances of `Window`</span>
+<span class='doccomment'>//! belonging to the same iterator may exist simultaneously. This is checked at runtime.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! ```</span>
+<span class='doccomment'>//! use sliding_windows::IterExt;</span>
+<span class='doccomment'>//! use sliding_windows::SlidingWindowStorage;</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! let mut storage: SlidingWindowStorage&lt;u32&gt; = SlidingWindowStorage::new(3);</span>
+<span class='doccomment'>//! let mut windowed_iter = (0..5).sliding_windows(&amp;mut storage);</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! // extra scope so that a doesn&#39;t live until the for loop</span>
+<span class='doccomment'>//! {</span>
+<span class='doccomment'>//!     let a = windowed_iter.next();</span>
+<span class='doccomment'>//!     //let b = windowed_iter.next(); =&gt; this would PANIC</span>
+<span class='doccomment'>//! }</span>
+<span class='doccomment'>//! </span>
+<span class='doccomment'>//! // looping for example is fine though</span>
+<span class='doccomment'>//! for _ in windowed_iter {</span>
+<span class='doccomment'>//!     // blah</span>
+<span class='doccomment'>//! }</span>
+<span class='doccomment'>//! ```</span>
+<span class='doccomment'>//! </span>
+<span class='doccomment'>//! # Mutable Window:</span>
+<span class='doccomment'>//! Window does not only dereference to an immutable slice of `Self::Item`, it also dereferences</span>
+<span class='doccomment'>//! to a mutable slice of `Self::Item`. Items of the mutable slice may be mutated freely.</span>
+<span class='doccomment'>//! </span>
+<span class='doccomment'>//! However be aware that changes made to the items in the Window are persistent through calls to `next()`.</span>
+
 <span class='kw'>mod</span> <span class='ident'>sliding_windows</span>;
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>test</span>)]</span>
 <span class='kw'>mod</span> <span class='ident'>tests</span>;
@@ -143,83 +222,6 @@
     <span class='ident'>SlidingWindowStorage</span>, <span class='ident'>SlidingWindowAdaptor</span> };
 
 <span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>IterExt</span>: <span class='ident'>Iterator</span> {
-    <span class='doccomment'>/// Return an iterator adaptor that yields sliding windows into the elements of the wrapped Iterator.</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// Note that this adaptor does **NOT** clone the whole window on every call to `next()`.</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// Iterator element type is `Window&lt;&#39;a, Self::Item&gt;`.</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// Note: `Window&lt;&#39;a, Self::Item&gt;` dereferences to `&amp;&#39;a [Self::Item]` or `&amp;&#39;a mut [Self::Item]`</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// This iterator is *fused*.</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// # Example:</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// ```</span>
-    <span class='doccomment'>/// use sliding_windows::IterExt;</span>
-    <span class='doccomment'>/// use sliding_windows::SlidingWindowStorage;</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// let mut storage: SlidingWindowStorage&lt;u32&gt; = SlidingWindowStorage::new(3);</span>
-    <span class='doccomment'>/// let windowed_iter = (0..5).sliding_windows(&amp;mut storage);</span>
-    <span class='doccomment'>/// let output: Vec&lt;Vec&lt;u32&gt;&gt; = windowed_iter.map(|x| From::from(&amp;x[..])).collect();</span>
-    <span class='doccomment'>/// let expected: &amp;[&amp;[u32]] = &amp;[&amp;[0,1,2], &amp;[1,2,3], &amp;[2,3,4]];</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// assert_eq!(output, expected);</span>
-    <span class='doccomment'>/// ```</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// It&#39;s also possible to reuse an allocation for `SlidingWindowStorage` via the `Into` trait.</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// # Example:</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// ```</span>
-    <span class='doccomment'>/// use sliding_windows::IterExt;</span>
-    <span class='doccomment'>/// use sliding_windows::SlidingWindowStorage;</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// let previous_alloca = vec![0u32; 3]; // length doesn&#39;t have to be equal to window_size</span>
-    <span class='doccomment'>/// let mut storage: SlidingWindowStorage&lt;u32&gt; = SlidingWindowStorage::from_vec(previous_alloca, 3);</span>
-    <span class='doccomment'>/// let expected: &amp;[&amp;[u32]] = &amp;[&amp;[0,1,2], &amp;[1,2,3], &amp;[2,3,4]];</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// // extra scope so that windowed_iter doesn&#39;t outlive storage.into() call</span>
-    <span class='doccomment'>/// {</span>
-    <span class='doccomment'>///     let windowed_iter = (0..5).sliding_windows(&amp;mut storage);</span>
-    <span class='doccomment'>///     let output: Vec&lt;Vec&lt;u32&gt;&gt; = windowed_iter.map(|x| From::from(&amp;x[..])).collect();</span>
-    <span class='doccomment'>///     assert_eq!(output, expected);</span>
-    <span class='doccomment'>/// }</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// let reusing_alloca: Vec&lt;u32&gt; = storage.into();</span>
-    <span class='doccomment'>/// // keep using allocation of storage</span>
-    <span class='doccomment'>/// </span>
-    <span class='doccomment'>/// ```</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// ### Panics:</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// As this iterator reuses the allocation for the yielded `Window`, no two instances of `Window`</span>
-    <span class='doccomment'>/// belonging to the same iterator may exist simultaneously. This is checked at runtime.</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// ```</span>
-    <span class='doccomment'>/// use sliding_windows::IterExt;</span>
-    <span class='doccomment'>/// use sliding_windows::SlidingWindowStorage;</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// let mut storage: SlidingWindowStorage&lt;u32&gt; = SlidingWindowStorage::new(3);</span>
-    <span class='doccomment'>/// let mut windowed_iter = (0..5).sliding_windows(&amp;mut storage);</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// // extra scope so that a doesn&#39;t live until the for loop</span>
-    <span class='doccomment'>/// {</span>
-    <span class='doccomment'>///     let a = windowed_iter.next();</span>
-    <span class='doccomment'>///     //let b = windowed_iter.next(); =&gt; this would PANIC</span>
-    <span class='doccomment'>/// }</span>
-    <span class='doccomment'>/// </span>
-    <span class='doccomment'>/// // looping for example is fine though</span>
-    <span class='doccomment'>/// for _ in windowed_iter {</span>
-    <span class='doccomment'>///     // blah</span>
-    <span class='doccomment'>/// }</span>
-    <span class='doccomment'>/// ```</span>
-    <span class='doccomment'>/// </span>
-    <span class='doccomment'>/// # Mutable Window:</span>
-    <span class='doccomment'>/// Window does not only dereference to an immutable slice of `Self::Item`, it also dereferences</span>
-    <span class='doccomment'>/// to a mutable slice of `Self::Item`. Items of the mutable slice may be mutated freely.</span>
-    <span class='doccomment'>/// </span>
-    <span class='doccomment'>/// However be aware that changes made to the items in the Window are persistent through calls to `next()`.</span>
     <span class='kw'>fn</span> <span class='ident'>sliding_windows</span>(<span class='self'>self</span>, <span class='ident'>storage</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>SlidingWindowStorage</span><span class='op'>&lt;</span><span class='ident'>Self</span>::<span class='ident'>Item</span><span class='op'>&gt;</span>)
         <span class='op'>-&gt;</span> <span class='ident'>SlidingWindowAdaptor</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>
         <span class='kw'>where</span> <span class='kw'>Self</span>: <span class='ident'>Sized</span>
