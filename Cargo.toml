@@ -1,5 +1,9 @@
 [package]
 name = "sliding_windows"
+description = "a non-copying implementation of a sliding windows iterator adaptor"
 version = "1.0.0"
 authors = ["flo-l <lacknerflo@gmail.com>"]
 license = "MIT"
+homepage = "https://flo-l.github.io/rust-sliding_windows/"
+documentation = "https://flo-l.github.io/rust-sliding_windows/"
+repository = "https://github.com/flo-l/rust-sliding_windows/"

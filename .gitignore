@@ -1,3 +1,4 @@
 target/debug
 target/release
+target/package
 Cargo.lock
