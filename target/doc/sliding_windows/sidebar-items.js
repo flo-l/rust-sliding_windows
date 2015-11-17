@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["SlidingWindowAdaptor","See `.sliding_windows()` for more information."],["SlidingWindowStorage","This holds the backing allocation for the `Window` of a `SlidingWindowAdaptor`."]],"trait":[["IterExt",""]]});
+initSidebarItems({"struct":[["SlidingWindowAdaptor","See sliding_windows for more information."],["SlidingWindowStorage","This holds the backing allocation for the `Window` of a `SlidingWindowAdaptor`."]],"trait":[["IterExt",""]]});

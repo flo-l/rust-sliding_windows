@@ -240,7 +240,6 @@
 <span id="198">198</span>
 <span id="199">199</span>
 <span id="200">200</span>
-<span id="201">201</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>cell</span>::{<span class='ident'>Cell</span>, <span class='ident'>UnsafeCell</span>};
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>ops</span>::{<span class='ident'>Deref</span>, <span class='ident'>DerefMut</span>};
@@ -397,7 +396,7 @@ impl !Sync for SlidingWindowStorage {}
     }
 }
 
-<span class='doccomment'>/// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information.</span>
+<span class='doccomment'>/// See [sliding_windows](index.html) for more information.</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>SlidingWindowAdaptor</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>I</span>: <span class='ident'>Iterator</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='op'>&lt;</span><span class='ident'>I</span> <span class='kw'>as</span> <span class='ident'>Iterator</span><span class='op'>&gt;</span>::<span class='ident'>Item</span>: <span class='lifetime'>&#39;a</span> {
     <span class='ident'>iter</span>: <span class='ident'>I</span>,
     <span class='ident'>done</span>: <span class='ident'>bool</span>,
@@ -406,9 +405,8 @@ impl !Sync for SlidingWindowStorage {}
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>I</span>: <span class='ident'>Iterator</span><span class='op'>&gt;</span> <span class='ident'>SlidingWindowAdaptor</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>I</span><span class='op'>&gt;</span> {
     <span class='doccomment'>/// This creates a new SlidingWindowAdaptor. Usually you should be using</span>
-    <span class='doccomment'>/// [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) instead.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information on the adaptor.</span>
+    <span class='doccomment'>/// See [sliding_windows](index.html) for more information.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>iter</span>: <span class='ident'>I</span>, <span class='ident'>storage</span>: <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>SlidingWindowStorage</span><span class='op'>&lt;</span><span class='ident'>I</span>::<span class='ident'>Item</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>SlidingWindowAdaptor</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>I</span><span class='op'>&gt;</span> {
         <span class='comment'>// in case the storage was reused</span>
         <span class='ident'>storage</span>.<span class='ident'>clear</span>();

@@ -153,7 +153,7 @@ impl<'a, 'b, T> PartialEq<&'b [T]> for Window<'a, T> where T: PartialEq
     }
 }
 
-/// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information.
+/// See [sliding_windows](index.html) for more information.
 pub struct SlidingWindowAdaptor<'a, I: Iterator> where <I as Iterator>::Item: 'a {
     iter: I,
     done: bool,
@@ -162,9 +162,8 @@ pub struct SlidingWindowAdaptor<'a, I: Iterator> where <I as Iterator>::Item: 'a
 
 impl<'a, I: Iterator> SlidingWindowAdaptor<'a, I> {
     /// This creates a new SlidingWindowAdaptor. Usually you should be using
-    /// [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) instead.
     ///
-    /// See [`.sliding_windows()`](trait.Itertools.html#method.sliding_windows) for more information on the adaptor.
+    /// See [sliding_windows](index.html) for more information.
     pub fn new(iter: I, storage: &'a SlidingWindowStorage<I::Item>) -> SlidingWindowAdaptor<'a, I> {
         // in case the storage was reused
         storage.clear();
