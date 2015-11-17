@@ -7,8 +7,8 @@ It's worth to note that it does **not** copy elements, which makes the code rela
 
 ### Links
 
-[Documentation](https://flo-l.github.io/rust-sliding_windows/)
-[crates.io](https://crates.io/crates/sliding_windows)
+- [Documentation](https://flo-l.github.io/rust-sliding_windows/)
+- [crates.io](https://crates.io/crates/sliding_windows)
 
 ### Install
 
