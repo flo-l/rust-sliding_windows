@@ -12,11 +12,6 @@ pub struct SlidingWindowStorage<T> {
     data: UnsafeCell<Vec<T>>
 }
 
-/* FIXME: uncomment this once it gets stable
-impl !Send for SlidingWindowStorage {}
-impl !Sync for SlidingWindowStorage {}
-*/
-
 impl<T> SlidingWindowStorage<T> {
     /// Create a new `SlidingWindowStorage` with a given window size.
     /// This will allocate as much memory as is needed to store the Window automatically.
