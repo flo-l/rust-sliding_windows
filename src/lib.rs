@@ -12,9 +12,9 @@
 //!
 //! ```
 //! use sliding_windows::IterExt;
-//! use sliding_windows::SlidingWindowStorage;
+//! use sliding_windows::Storage;
 //!
-//! let mut storage: SlidingWindowStorage<u32> = SlidingWindowStorage::new(3);
+//! let mut storage: Storage<u32> = Storage::new(3);
 //! let windowed_iter = (0..5).sliding_windows(&mut storage);
 //! let output: Vec<Vec<u32>> = windowed_iter.map(|x| From::from(&x[..])).collect();
 //! let expected: &[&[u32]] = &[&[0,1,2], &[1,2,3], &[2,3,4]];
@@ -22,16 +22,16 @@
 //! assert_eq!(output, expected);
 //! ```
 //!
-//! It's also possible to reuse an allocation for `SlidingWindowStorage` via the `Into` trait.
+//! It's also possible to reuse an allocation for `Storage` via the `Into` trait.
 //!
 //! # Example:
 //!
 //! ```
 //! use sliding_windows::IterExt;
-//! use sliding_windows::SlidingWindowStorage;
+//! use sliding_windows::Storage;
 //!
 //! let previous_alloca = vec![0u32; 3]; // length doesn't have to be equal to window_size
-//! let mut storage: SlidingWindowStorage<u32> = SlidingWindowStorage::from_vec(previous_alloca, 3);
+//! let mut storage: Storage<u32> = Storage::from_vec(previous_alloca, 3);
 //! let expected: &[&[u32]] = &[&[0,1,2], &[1,2,3], &[2,3,4]];
 //!
 //! // extra scope so that windowed_iter doesn't outlive storage.into() call
@@ -53,9 +53,9 @@
 //!
 //! ```
 //! use sliding_windows::IterExt;
-//! use sliding_windows::SlidingWindowStorage;
+//! use sliding_windows::Storage;
 //!
-//! let mut storage: SlidingWindowStorage<u32> = SlidingWindowStorage::new(3);
+//! let mut storage: Storage<u32> = Storage::new(3);
 //! let mut windowed_iter = (0..5).sliding_windows(&mut storage);
 //!
 //! // extra scope so that a doesn't live until the for loop
@@ -81,14 +81,14 @@ mod sliding_windows;
 mod tests;
 
 pub use sliding_windows::{
-    SlidingWindowStorage, SlidingWindowAdaptor };
+    Storage, Adaptor };
 
 pub trait IterExt: Iterator {
-    fn sliding_windows(self, storage: &mut SlidingWindowStorage<Self::Item>)
-        -> SlidingWindowAdaptor<Self>
+    fn sliding_windows(self, storage: &mut Storage<Self::Item>)
+        -> Adaptor<Self>
         where Self: Sized
     {
-        SlidingWindowAdaptor::new(self, storage)
+        Adaptor::new(self, storage)
     }
 }
 

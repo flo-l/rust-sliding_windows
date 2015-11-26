@@ -2,32 +2,32 @@ use std::cell::{Cell, UnsafeCell};
 use std::ops::{Deref, DerefMut};
 use std::fmt;
 
-/// This holds the backing allocation for the `Window` of a `SlidingWindowAdaptor`.
+/// This holds the backing allocation for the `Window` of a `Adaptor`.
 /// 
 /// See [sliding_windows](index.html) for more information.
-pub struct SlidingWindowStorage<T> {
+pub struct Storage<T> {
     window_size: usize,
     /// acts as a refcount
     uniquely_owned: Cell<bool>,
     data: UnsafeCell<Vec<T>>
 }
 
-impl<T> SlidingWindowStorage<T> {
-    /// Create a new `SlidingWindowStorage` with a given window size.
+impl<T> Storage<T> {
+    /// Create a new `Storage` with a given window size.
     /// This will allocate as much memory as is needed to store the Window automatically.
     ///
     /// See [sliding_windows](index.html) for more information.
-    pub fn new(window_size: usize) -> SlidingWindowStorage<T> {
-        SlidingWindowStorage::from_vec(Vec::with_capacity(window_size), window_size)
+    pub fn new(window_size: usize) -> Storage<T> {
+        Storage::from_vec(Vec::with_capacity(window_size), window_size)
     }
 
-    /// Create a new `SlidingWindowStorage` with a given window size from a given `Vec`.
+    /// Create a new `Storage` with a given window size from a given `Vec`.
     /// The contents of the Vec will be removed.
     /// This will reuse the allocation of the Vec instead of allocating new memory.
     ///
     /// See [sliding_windows](index.html) for more information.
-    pub fn from_vec(vec: Vec<T>, window_size: usize) -> SlidingWindowStorage<T> {
-        SlidingWindowStorage {
+    pub fn from_vec(vec: Vec<T>, window_size: usize) -> Storage<T> {
+        Storage {
             window_size: window_size,
             uniquely_owned: Cell::new(true),
             data: UnsafeCell::new(vec)
@@ -64,7 +64,7 @@ impl<T> SlidingWindowStorage<T> {
     }
 }
 
-impl<T> Into<Vec<T>> for SlidingWindowStorage<T> {
+impl<T> Into<Vec<T>> for Storage<T> {
     fn into(self) -> Vec<T> {
         assert!(self.uniquely_owned.get(), "Storage dereferenced before previous Window went out of scope");
         unsafe {
@@ -73,7 +73,7 @@ impl<T> Into<Vec<T>> for SlidingWindowStorage<T> {
     }
 }
 
-/// This is the `Item` type of the `SlidingWindowAdaptor` iterator.
+/// This is the `Item` type of the `Adaptor` iterator.
 ///
 /// # Usage:
 ///
@@ -81,9 +81,9 @@ impl<T> Into<Vec<T>> for SlidingWindowStorage<T> {
 ///
 /// ```
 /// use sliding_windows::IterExt;
-/// use sliding_windows::SlidingWindowStorage;
+/// use sliding_windows::Storage;
 ///
-/// let mut storage: SlidingWindowStorage<u32> = SlidingWindowStorage::new(3);
+/// let mut storage: Storage<u32> = Storage::new(3);
 /// let mut windowed_iter = (0..5).sliding_windows(&mut storage);
 ///
 /// for mut window in windowed_iter {
@@ -149,21 +149,21 @@ impl<'a, 'b, T> PartialEq<&'b [T]> for Window<'a, T> where T: PartialEq
 }
 
 /// See [sliding_windows](index.html) for more information.
-pub struct SlidingWindowAdaptor<'a, I: Iterator> where <I as Iterator>::Item: 'a {
+pub struct Adaptor<'a, I: Iterator> where <I as Iterator>::Item: 'a {
     iter: I,
     done: bool,
-    storage: &'a SlidingWindowStorage<I::Item>,
+    storage: &'a Storage<I::Item>,
 }
 
-impl<'a, I: Iterator> SlidingWindowAdaptor<'a, I> {
-    /// This creates a new SlidingWindowAdaptor. Usually you should be using
+impl<'a, I: Iterator> Adaptor<'a, I> {
+    /// This creates a new Adaptor. Usually you should be using
     ///
     /// See [sliding_windows](index.html) for more information.
-    pub fn new(iter: I, storage: &'a SlidingWindowStorage<I::Item>) -> SlidingWindowAdaptor<'a, I> {
+    pub fn new(iter: I, storage: &'a Storage<I::Item>) -> Adaptor<'a, I> {
         // in case the storage was reused
         storage.clear();
 
-        SlidingWindowAdaptor {
+        Adaptor {
             iter: iter,
             done: false,
             storage: storage,
@@ -171,7 +171,7 @@ impl<'a, I: Iterator> SlidingWindowAdaptor<'a, I> {
     }
 }
 
-impl<'a, I: Iterator> Iterator for SlidingWindowAdaptor<'a, I> {
+impl<'a, I: Iterator> Iterator for Adaptor<'a, I> {
     type Item = Window<'a, I::Item>;
 
     fn next(&mut self) -> Option<Self::Item> {

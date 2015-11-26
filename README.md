@@ -21,9 +21,9 @@ Add this to your ```Cargo.toml```.
 
 ```rust
 extern crate sliding_windows;
-use sliding_windows::{IterExt, SlidingWindowStorage};
+use sliding_windows::{IterExt, Storage};
 
-let mut storage: SlidingWindowStorage<u32> = SlidingWindowStorage::new(3);
+let mut storage: Storage<u32> = Storage::new(3);
 
 for x in (0..5).sliding_windows(&mut storage) {
     println!("{:?}", x);
