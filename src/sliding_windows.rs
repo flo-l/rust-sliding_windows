@@ -21,16 +21,16 @@ impl<T> Storage<T> {
         Storage::from_vec(Vec::with_capacity(window_size), window_size)
     }
 
-    /// Create a new `Storage` with a given window size from a given `Vec`.
+    /// Create a new `Storage` with a given window size from a given struct implementing `Into<Vec>`.
     /// The contents of the Vec will be removed.
     /// This will reuse the allocation of the Vec instead of allocating new memory.
     ///
     /// See [sliding_windows](index.html) for more information.
-    pub fn from_vec(vec: Vec<T>, window_size: usize) -> Storage<T> {
+    pub fn from_vec<S: Into<Vec<T>>>(vec: S, window_size: usize) -> Storage<T> {
         Storage {
             window_size: window_size,
             uniquely_owned: Cell::new(true),
-            data: UnsafeCell::new(vec)
+            data: UnsafeCell::new(vec.into())
         }
     }
 

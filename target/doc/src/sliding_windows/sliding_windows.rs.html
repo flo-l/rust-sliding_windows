@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `sliding_windows.rs`.">
+    <meta name="description" content="Source to the Rust file `src/sliding_windows.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>sliding_windows.rs.html -- source</title>
@@ -259,16 +259,16 @@
         <span class='ident'>Storage</span>::<span class='ident'>from_vec</span>(<span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='ident'>window_size</span>), <span class='ident'>window_size</span>)
     }
 
-    <span class='doccomment'>/// Create a new `Storage` with a given window size from a given `Vec`.</span>
+    <span class='doccomment'>/// Create a new `Storage` with a given window size from a given struct implementing `Into&lt;Vec&gt;`.</span>
     <span class='doccomment'>/// The contents of the Vec will be removed.</span>
     <span class='doccomment'>/// This will reuse the allocation of the Vec instead of allocating new memory.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// See [sliding_windows](index.html) for more information.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>from_vec</span>(<span class='ident'>vec</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>, <span class='ident'>window_size</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>Storage</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>from_vec</span><span class='op'>&lt;</span><span class='ident'>S</span>: <span class='ident'>Into</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span><span class='op'>&gt;</span>(<span class='ident'>vec</span>: <span class='ident'>S</span>, <span class='ident'>window_size</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>Storage</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
         <span class='ident'>Storage</span> {
             <span class='ident'>window_size</span>: <span class='ident'>window_size</span>,
             <span class='ident'>uniquely_owned</span>: <span class='ident'>Cell</span>::<span class='ident'>new</span>(<span class='boolval'>true</span>),
-            <span class='ident'>data</span>: <span class='ident'>UnsafeCell</span>::<span class='ident'>new</span>(<span class='ident'>vec</span>)
+            <span class='ident'>data</span>: <span class='ident'>UnsafeCell</span>::<span class='ident'>new</span>(<span class='ident'>vec</span>.<span class='ident'>into</span>())
         }
     }
 
