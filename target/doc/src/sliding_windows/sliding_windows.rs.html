@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `src/sliding_windows.rs`.">
+    <meta name="description" content="Source to the Rust file `sliding_windows.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>sliding_windows.rs.html -- source</title>
@@ -235,47 +235,37 @@
 <span id="193">193</span>
 <span id="194">194</span>
 <span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>cell</span>::{<span class='ident'>Cell</span>, <span class='ident'>UnsafeCell</span>};
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>ops</span>::{<span class='ident'>Deref</span>, <span class='ident'>DerefMut</span>};
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>fmt</span>;
 
-<span class='doccomment'>/// This holds the backing allocation for the `Window` of a `SlidingWindowAdaptor`.</span>
+<span class='doccomment'>/// This holds the backing allocation for the `Window` of a `Adaptor`.</span>
 <span class='doccomment'>/// </span>
 <span class='doccomment'>/// See [sliding_windows](index.html) for more information.</span>
-<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>SlidingWindowStorage</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Storage</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
     <span class='ident'>window_size</span>: <span class='ident'>usize</span>,
     <span class='doccomment'>/// acts as a refcount</span>
     <span class='ident'>uniquely_owned</span>: <span class='ident'>Cell</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span>,
     <span class='ident'>data</span>: <span class='ident'>UnsafeCell</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span>
 }
 
-<span class='comment'>/* FIXME: uncomment this once it gets stable
-impl !Send for SlidingWindowStorage {}
-impl !Sync for SlidingWindowStorage {}
-*/</span>
-
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>SlidingWindowStorage</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='doccomment'>/// Create a new `SlidingWindowStorage` with a given window size.</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Storage</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+    <span class='doccomment'>/// Create a new `Storage` with a given window size.</span>
     <span class='doccomment'>/// This will allocate as much memory as is needed to store the Window automatically.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// See [sliding_windows](index.html) for more information.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>window_size</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>SlidingWindowStorage</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-        <span class='ident'>SlidingWindowStorage</span>::<span class='ident'>from_vec</span>(<span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='ident'>window_size</span>), <span class='ident'>window_size</span>)
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>window_size</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>Storage</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+        <span class='ident'>Storage</span>::<span class='ident'>from_vec</span>(<span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='ident'>window_size</span>), <span class='ident'>window_size</span>)
     }
 
-    <span class='doccomment'>/// Create a new `SlidingWindowStorage` with a given window size from a given `Vec`.</span>
+    <span class='doccomment'>/// Create a new `Storage` with a given window size from a given `Vec`.</span>
     <span class='doccomment'>/// The contents of the Vec will be removed.</span>
     <span class='doccomment'>/// This will reuse the allocation of the Vec instead of allocating new memory.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// See [sliding_windows](index.html) for more information.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>from_vec</span>(<span class='ident'>vec</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>, <span class='ident'>window_size</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>SlidingWindowStorage</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-        <span class='ident'>SlidingWindowStorage</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>from_vec</span>(<span class='ident'>vec</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>, <span class='ident'>window_size</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>Storage</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+        <span class='ident'>Storage</span> {
             <span class='ident'>window_size</span>: <span class='ident'>window_size</span>,
             <span class='ident'>uniquely_owned</span>: <span class='ident'>Cell</span>::<span class='ident'>new</span>(<span class='boolval'>true</span>),
             <span class='ident'>data</span>: <span class='ident'>UnsafeCell</span>::<span class='ident'>new</span>(<span class='ident'>vec</span>)
@@ -312,7 +302,7 @@ impl !Sync for SlidingWindowStorage {}
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Into</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> <span class='kw'>for</span> <span class='ident'>SlidingWindowStorage</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Into</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> <span class='kw'>for</span> <span class='ident'>Storage</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
     <span class='kw'>fn</span> <span class='ident'>into</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
         <span class='macro'>assert</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>uniquely_owned</span>.<span class='ident'>get</span>(), <span class='string'>&quot;Storage dereferenced before previous Window went out of scope&quot;</span>);
         <span class='kw'>unsafe</span> {
@@ -321,7 +311,7 @@ impl !Sync for SlidingWindowStorage {}
     }
 }
 
-<span class='doccomment'>/// This is the `Item` type of the `SlidingWindowAdaptor` iterator.</span>
+<span class='doccomment'>/// This is the `Item` type of the `Adaptor` iterator.</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// # Usage:</span>
 <span class='doccomment'>///</span>
@@ -329,9 +319,9 @@ impl !Sync for SlidingWindowStorage {}
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// ```</span>
 <span class='doccomment'>/// use sliding_windows::IterExt;</span>
-<span class='doccomment'>/// use sliding_windows::SlidingWindowStorage;</span>
+<span class='doccomment'>/// use sliding_windows::Storage;</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// let mut storage: SlidingWindowStorage&lt;u32&gt; = SlidingWindowStorage::new(3);</span>
+<span class='doccomment'>/// let mut storage: Storage&lt;u32&gt; = Storage::new(3);</span>
 <span class='doccomment'>/// let mut windowed_iter = (0..5).sliding_windows(&amp;mut storage);</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// for mut window in windowed_iter {</span>
@@ -397,21 +387,21 @@ impl !Sync for SlidingWindowStorage {}
 }
 
 <span class='doccomment'>/// See [sliding_windows](index.html) for more information.</span>
-<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>SlidingWindowAdaptor</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>I</span>: <span class='ident'>Iterator</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='op'>&lt;</span><span class='ident'>I</span> <span class='kw'>as</span> <span class='ident'>Iterator</span><span class='op'>&gt;</span>::<span class='ident'>Item</span>: <span class='lifetime'>&#39;a</span> {
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Adaptor</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>I</span>: <span class='ident'>Iterator</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='op'>&lt;</span><span class='ident'>I</span> <span class='kw'>as</span> <span class='ident'>Iterator</span><span class='op'>&gt;</span>::<span class='ident'>Item</span>: <span class='lifetime'>&#39;a</span> {
     <span class='ident'>iter</span>: <span class='ident'>I</span>,
     <span class='ident'>done</span>: <span class='ident'>bool</span>,
-    <span class='ident'>storage</span>: <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>SlidingWindowStorage</span><span class='op'>&lt;</span><span class='ident'>I</span>::<span class='ident'>Item</span><span class='op'>&gt;</span>,
+    <span class='ident'>storage</span>: <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>Storage</span><span class='op'>&lt;</span><span class='ident'>I</span>::<span class='ident'>Item</span><span class='op'>&gt;</span>,
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>I</span>: <span class='ident'>Iterator</span><span class='op'>&gt;</span> <span class='ident'>SlidingWindowAdaptor</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>I</span><span class='op'>&gt;</span> {
-    <span class='doccomment'>/// This creates a new SlidingWindowAdaptor. Usually you should be using</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>I</span>: <span class='ident'>Iterator</span><span class='op'>&gt;</span> <span class='ident'>Adaptor</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>I</span><span class='op'>&gt;</span> {
+    <span class='doccomment'>/// This creates a new Adaptor. Usually you should be using</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// See [sliding_windows](index.html) for more information.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>iter</span>: <span class='ident'>I</span>, <span class='ident'>storage</span>: <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>SlidingWindowStorage</span><span class='op'>&lt;</span><span class='ident'>I</span>::<span class='ident'>Item</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>SlidingWindowAdaptor</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>I</span><span class='op'>&gt;</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>iter</span>: <span class='ident'>I</span>, <span class='ident'>storage</span>: <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>Storage</span><span class='op'>&lt;</span><span class='ident'>I</span>::<span class='ident'>Item</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>Adaptor</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>I</span><span class='op'>&gt;</span> {
         <span class='comment'>// in case the storage was reused</span>
         <span class='ident'>storage</span>.<span class='ident'>clear</span>();
 
-        <span class='ident'>SlidingWindowAdaptor</span> {
+        <span class='ident'>Adaptor</span> {
             <span class='ident'>iter</span>: <span class='ident'>iter</span>,
             <span class='ident'>done</span>: <span class='boolval'>false</span>,
             <span class='ident'>storage</span>: <span class='ident'>storage</span>,
@@ -419,7 +409,7 @@ impl !Sync for SlidingWindowStorage {}
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>I</span>: <span class='ident'>Iterator</span><span class='op'>&gt;</span> <span class='ident'>Iterator</span> <span class='kw'>for</span> <span class='ident'>SlidingWindowAdaptor</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>I</span><span class='op'>&gt;</span> {
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>I</span>: <span class='ident'>Iterator</span><span class='op'>&gt;</span> <span class='ident'>Iterator</span> <span class='kw'>for</span> <span class='ident'>Adaptor</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>I</span><span class='op'>&gt;</span> {
     <span class='kw'>type</span> <span class='ident'>Item</span> <span class='op'>=</span> <span class='ident'>Window</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>I</span>::<span class='ident'>Item</span><span class='op'>&gt;</span>;
 
     <span class='kw'>fn</span> <span class='ident'>next</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Self</span>::<span class='ident'>Item</span><span class='op'>&gt;</span> {

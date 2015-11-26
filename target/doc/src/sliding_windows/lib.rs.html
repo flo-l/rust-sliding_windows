@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `src/lib.rs`.">
+    <meta name="description" content="Source to the Rust file `lib.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>lib.rs.html -- source</title>
@@ -150,9 +150,9 @@
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! ```</span>
 <span class='doccomment'>//! use sliding_windows::IterExt;</span>
-<span class='doccomment'>//! use sliding_windows::SlidingWindowStorage;</span>
+<span class='doccomment'>//! use sliding_windows::Storage;</span>
 <span class='doccomment'>//!</span>
-<span class='doccomment'>//! let mut storage: SlidingWindowStorage&lt;u32&gt; = SlidingWindowStorage::new(3);</span>
+<span class='doccomment'>//! let mut storage: Storage&lt;u32&gt; = Storage::new(3);</span>
 <span class='doccomment'>//! let windowed_iter = (0..5).sliding_windows(&amp;mut storage);</span>
 <span class='doccomment'>//! let output: Vec&lt;Vec&lt;u32&gt;&gt; = windowed_iter.map(|x| From::from(&amp;x[..])).collect();</span>
 <span class='doccomment'>//! let expected: &amp;[&amp;[u32]] = &amp;[&amp;[0,1,2], &amp;[1,2,3], &amp;[2,3,4]];</span>
@@ -160,16 +160,16 @@
 <span class='doccomment'>//! assert_eq!(output, expected);</span>
 <span class='doccomment'>//! ```</span>
 <span class='doccomment'>//!</span>
-<span class='doccomment'>//! It&#39;s also possible to reuse an allocation for `SlidingWindowStorage` via the `Into` trait.</span>
+<span class='doccomment'>//! It&#39;s also possible to reuse an allocation for `Storage` via the `Into` trait.</span>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! # Example:</span>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! ```</span>
 <span class='doccomment'>//! use sliding_windows::IterExt;</span>
-<span class='doccomment'>//! use sliding_windows::SlidingWindowStorage;</span>
+<span class='doccomment'>//! use sliding_windows::Storage;</span>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! let previous_alloca = vec![0u32; 3]; // length doesn&#39;t have to be equal to window_size</span>
-<span class='doccomment'>//! let mut storage: SlidingWindowStorage&lt;u32&gt; = SlidingWindowStorage::from_vec(previous_alloca, 3);</span>
+<span class='doccomment'>//! let mut storage: Storage&lt;u32&gt; = Storage::from_vec(previous_alloca, 3);</span>
 <span class='doccomment'>//! let expected: &amp;[&amp;[u32]] = &amp;[&amp;[0,1,2], &amp;[1,2,3], &amp;[2,3,4]];</span>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! // extra scope so that windowed_iter doesn&#39;t outlive storage.into() call</span>
@@ -191,9 +191,9 @@
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! ```</span>
 <span class='doccomment'>//! use sliding_windows::IterExt;</span>
-<span class='doccomment'>//! use sliding_windows::SlidingWindowStorage;</span>
+<span class='doccomment'>//! use sliding_windows::Storage;</span>
 <span class='doccomment'>//!</span>
-<span class='doccomment'>//! let mut storage: SlidingWindowStorage&lt;u32&gt; = SlidingWindowStorage::new(3);</span>
+<span class='doccomment'>//! let mut storage: Storage&lt;u32&gt; = Storage::new(3);</span>
 <span class='doccomment'>//! let mut windowed_iter = (0..5).sliding_windows(&amp;mut storage);</span>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! // extra scope so that a doesn&#39;t live until the for loop</span>
@@ -219,14 +219,14 @@
 <span class='kw'>mod</span> <span class='ident'>tests</span>;
 
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>sliding_windows</span>::{
-    <span class='ident'>SlidingWindowStorage</span>, <span class='ident'>SlidingWindowAdaptor</span> };
+    <span class='ident'>Storage</span>, <span class='ident'>Adaptor</span> };
 
 <span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>IterExt</span>: <span class='ident'>Iterator</span> {
-    <span class='kw'>fn</span> <span class='ident'>sliding_windows</span>(<span class='self'>self</span>, <span class='ident'>storage</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>SlidingWindowStorage</span><span class='op'>&lt;</span><span class='ident'>Self</span>::<span class='ident'>Item</span><span class='op'>&gt;</span>)
-        <span class='op'>-&gt;</span> <span class='ident'>SlidingWindowAdaptor</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>
+    <span class='kw'>fn</span> <span class='ident'>sliding_windows</span>(<span class='self'>self</span>, <span class='ident'>storage</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Storage</span><span class='op'>&lt;</span><span class='ident'>Self</span>::<span class='ident'>Item</span><span class='op'>&gt;</span>)
+        <span class='op'>-&gt;</span> <span class='ident'>Adaptor</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>
         <span class='kw'>where</span> <span class='kw'>Self</span>: <span class='ident'>Sized</span>
     {
-        <span class='ident'>SlidingWindowAdaptor</span>::<span class='ident'>new</span>(<span class='self'>self</span>, <span class='ident'>storage</span>)
+        <span class='ident'>Adaptor</span>::<span class='ident'>new</span>(<span class='self'>self</span>, <span class='ident'>storage</span>)
     }
 }
 
