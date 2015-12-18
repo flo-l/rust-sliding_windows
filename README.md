@@ -19,7 +19,7 @@ I'd happily accept a PR to implement the same functionality with a ```VecDeque``
 Add this to your ```Cargo.toml```.
 
     [dependencies]
-    sliding_windows = "1.0"
+    sliding_windows = "2.0"
 
 ### Example
 
