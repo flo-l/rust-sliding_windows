@@ -48,3 +48,36 @@ fn sliding_windows_3() {
     let _a = windowed_iter.next();
     let _b = windowed_iter.next();
 }
+
+#[test]
+fn sliding_windows_4() {
+    let mut storage1: Storage<u32> = Storage::new(3);
+    let iter1 = Adaptor::new(0..5, &mut storage1);
+
+    let mut storage2: Storage<u32> = Storage::new(5);
+    let iter2 = Adaptor::new(0..5, &mut storage2);
+
+    let mut storage3: Storage<u32> = Storage::new(6);
+    let iter3 = Adaptor::new(0..5, &mut storage3);
+
+    let mut storage4: Storage<u32> = Storage::new(6);
+    let iter4 = Adaptor::new(0..0, &mut storage4);
+
+    let mut storage5: Storage<u32> = Storage::new(6);
+    let iter5 = Adaptor::new(0.., &mut storage5);
+
+    assert_eq!(iter1.size_hint(), (3, Some(3)));
+    assert_eq!(iter2.size_hint(), (1, Some(1)));
+    assert_eq!(iter3.size_hint(), (1, Some(1)));
+    assert_eq!(iter4.size_hint(), (0, Some(0)));
+    assert_eq!(iter5.size_hint(), (0, None));
+}
+
+#[test]
+fn sliding_windows_5() {
+    let mut storage: Storage<u32> = Storage::new(0);
+    let mut iter = Adaptor::new(0..5, &mut storage);
+
+    assert!(iter.next().is_none());
+    assert!(iter.next().is_none());
+}

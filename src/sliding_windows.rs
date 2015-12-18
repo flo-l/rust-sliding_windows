@@ -175,7 +175,7 @@ impl<'a, I: Iterator> Iterator for Adaptor<'a, I> {
     type Item = Window<'a, I::Item>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.done {
+        if self.done || self.storage.window_size == 0 {
             return None
         }
         self.done = true;
@@ -191,5 +191,30 @@ impl<'a, I: Iterator> Iterator for Adaptor<'a, I> {
         } else {
             None
         }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let size = self.storage.window_size;
+        let (mut lower, mut upper): (usize, Option<usize>) = self.iter.size_hint();
+
+        if size == 0 {
+            return (0, None);
+        }
+
+        lower = match lower {
+            0 => 0,
+            x if x >= size => x - size + 1,
+            _ => 1
+        };
+
+        upper = upper.map(|upper|
+            match upper {
+                0 => 0,
+                x if x >= size => x - size + 1,
+                _ => 1
+            }
+        );
+
+        (lower, upper)
     }
 }
