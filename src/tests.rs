@@ -10,9 +10,6 @@ fn sliding_windows_1() {
             let output: Vec<Vec<u32>> = windowed_iter.map(|x| From::from(&x[..])).collect();
             assert_eq!(output, expected);
         }
-
-        let storage_vec: Vec<u32> = storage.into();
-        assert_eq!(*expected.last().unwrap(), &*storage_vec);
     }
 
     let auto_alloc:  Storage<u32> = Storage::new(3);

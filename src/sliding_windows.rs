@@ -7,6 +7,8 @@ use std::fmt;
 /// See [sliding_windows](index.html) for more information.
 pub struct Storage<T> {
     window_size: usize,
+    // use elements just from this offset on
+    window_offset: Cell<usize>,
     /// acts as a refcount
     uniquely_owned: Cell<bool>,
     data: UnsafeCell<Vec<T>>
@@ -14,10 +16,25 @@ pub struct Storage<T> {
 
 impl<T> Storage<T> {
     /// Create a new `Storage` with a given window size.
-    /// This will allocate as much memory as is needed to store the Window automatically.
+    /// This will allocate twice as much memory as is needed to store the Window for performance reasons.
+    ///
+    /// If you want to use as few memory as possible, but more CPU, consider using ```Storage::new_exact()``` instead.
     ///
     /// See [sliding_windows](index.html) for more information.
     pub fn new(window_size: usize) -> Storage<T> {
+        Storage {
+            window_size: window_size,
+            window_offset: Cell::new(0),
+            uniquely_owned: Cell::new(true),
+            data: UnsafeCell::new(Vec::with_capacity(window_size * 2))
+        }
+    }
+
+    /// Create a new `Storage` with a given window size.
+    /// This will allocate as much memory as is needed to store the Window automatically.
+    ///
+    /// See [sliding_windows](index.html) for more information.
+    pub fn new_exact(window_size: usize) -> Storage<T> {
         Storage::from_vec(Vec::with_capacity(window_size), window_size)
     }
 
@@ -29,6 +46,7 @@ impl<T> Storage<T> {
     pub fn from_vec<S: Into<Vec<T>>>(vec: S, window_size: usize) -> Storage<T> {
         Storage {
             window_size: window_size,
+            window_offset: Cell::new(0),
             uniquely_owned: Cell::new(true),
             data: UnsafeCell::new(vec.into())
         }
@@ -37,23 +55,34 @@ impl<T> Storage<T> {
     fn new_window<'a>(&'a self) -> Window<'a, T> {
         // assert that the last window went out of scope
         assert!(self.uniquely_owned.get(), "next() called before previous Window went out of scope");
+        let data = unsafe { &mut *self.data.get() };
+        let window_offset = self.window_offset.get();
 
         self.uniquely_owned.set(false);
 
-        Window { drop_flag: &self.uniquely_owned, data: &self.data }
+        Window { drop_flag: &self.uniquely_owned, data: &mut data[window_offset..] }
     }
 
     // push value onto self
+    // this should only be called if data.len() >= window_size
     fn push(&self, elt: T) -> bool {
         assert!(self.uniquely_owned.get(), "next() called before previous Window went out of scope");
         let data = unsafe { &mut *self.data.get() };
-        if data.len() != self.window_size {
-            data.push(elt);
-        } else {
-            data.remove(0);
-            data.push(elt);
+        let window_offset = self.window_offset.get();
+
+        if data.len() >= self.window_size {
+            // storage is full, copy elements to the front with drain
+            if data.len() == data.capacity() {
+                data.drain(0..window_offset+1);
+                self.window_offset.set(0);
+            // storage is has min. window_size elements, so offset must be increased
+            } else {
+                self.window_offset.set(window_offset + 1);
+            }
         }
-        data.len() == self.window_size
+
+        data.push(elt);
+        data.len() >= self.window_size
     }
 
     // clear backing storage
@@ -102,13 +131,13 @@ impl<T> Into<Vec<T>> for Storage<T> {
 /// See [sliding_windows](index.html) for more information. 
 pub struct Window<'a, T: 'a> {
     drop_flag: &'a Cell<bool>,
-    data: &'a UnsafeCell<Vec<T>>,
+    data: &'a mut [T],
 }
 
 impl<'a, T> fmt::Debug for Window<'a, T> where T: fmt::Debug
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self[..].fmt(f)
+        self.data.fmt(f)
     }
 }
 
@@ -125,9 +154,7 @@ impl<'a, T> Deref for Window<'a, T> {
 
     fn deref(&self) -> &[T] {
         debug_assert!(!self.drop_flag.get());
-        unsafe {
-            &**self.data.get()
-        }
+        &*self.data
     }
 }
 
@@ -135,16 +162,14 @@ impl<'a, T> Deref for Window<'a, T> {
 impl<'a, T> DerefMut for Window<'a, T> {
     fn deref_mut(&mut self) -> &mut [T] {
         debug_assert!(!self.drop_flag.get());
-        unsafe {
-            &mut **self.data.get()
-        }
+        self.data
     }
 }
 
 impl<'a, 'b, T> PartialEq<&'b [T]> for Window<'a, T> where T: PartialEq
 {
     fn eq(&self, other: &&'b [T]) -> bool {
-        self[..] == **other
+        &self[..] == *other
     }
 }
 
