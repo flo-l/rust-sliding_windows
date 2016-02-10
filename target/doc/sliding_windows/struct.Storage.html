@@ -46,13 +46,20 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-9' class='srclink' href='../src/sliding_windows/sliding_windows.rs.html#8-13' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-9' class='srclink' href='../src/sliding_windows/sliding_windows.rs.html#8-15' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Storage&lt;T&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>This holds the backing allocation for the <code>Window</code> of a <code>Adaptor</code>.</p>
 
 <p>See <a href="index.html">sliding_windows</a> for more information.</p>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='struct' href='../sliding_windows/struct.Storage.html' title='sliding_windows::Storage'>Storage</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(window_size: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../sliding_windows/struct.Storage.html' title='sliding_windows::Storage'>Storage</a>&lt;T&gt;</code></h4>
+<div class='docblock'><p>Create a new <code>Storage</code> with a given window size.
+This will allocate twice as much memory as is needed to store the Window for performance reasons.</p>
+
+<p>If you want to use as few memory as possible, but more CPU, consider using <code>Storage::new_exact()</code> instead.</p>
+
+<p>See <a href="index.html">sliding_windows</a> for more information.</p>
+</div><h4 id='method.new_exact' class='method'><code>fn <a href='#method.new_exact' class='fnname'>new_exact</a>(window_size: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../sliding_windows/struct.Storage.html' title='sliding_windows::Storage'>Storage</a>&lt;T&gt;</code></h4>
 <div class='docblock'><p>Create a new <code>Storage</code> with a given window size.
 This will allocate as much memory as is needed to store the Window automatically.</p>
 
