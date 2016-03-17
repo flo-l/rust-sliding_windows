@@ -12,12 +12,14 @@ fn sliding_windows_1() {
         }
     }
 
-    let auto_alloc:  Storage<u32> = Storage::new(3);
-    let small_alloc: Storage<u32> = Storage::from_vec(vec![1u32;   1], 3);
-    let exact_alloc: Storage<u32> = Storage::from_vec(vec![1u32;   3], 3);
-    let big_alloc:   Storage<u32> = Storage::from_vec(vec![1u32, 100], 3);
+    let auto_alloc:   Storage<u32> = Storage::optimized(&(0..5), 3);
+    let middle_alloc: Storage<u32> = Storage::new(3);
+    let small_alloc:  Storage<u32> = Storage::from_vec(vec![1u32;   1], 3);
+    let exact_alloc:  Storage<u32> = Storage::from_vec(vec![1u32;   3], 3);
+    let big_alloc:    Storage<u32> = Storage::from_vec(vec![1u32, 100], 3);
 
     test_window_correctness_with_storage(auto_alloc);
+    test_window_correctness_with_storage(middle_alloc);
     test_window_correctness_with_storage(small_alloc);
     test_window_correctness_with_storage(exact_alloc);
     test_window_correctness_with_storage(big_alloc);
@@ -26,7 +28,7 @@ fn sliding_windows_1() {
 #[test]
 fn sliding_windows_2() {
     let it = 0..5;
-    let mut storage: Storage<u32> = Storage::new(3);
+    let mut storage: Storage<u32> = Storage::optimized(&it, 3);
     let windowed_iter = Adaptor::new(it, &mut storage);
 
     for mut x in windowed_iter {
@@ -39,7 +41,7 @@ fn sliding_windows_2() {
 #[should_panic]
 fn sliding_windows_3() {
     let it = 0..5;
-    let mut storage: Storage<u32> = Storage::new(3);
+    let mut storage: Storage<u32> = Storage::optimized(&it, 3);
     let mut windowed_iter = Adaptor::new(it, &mut storage);
 
     let _a = windowed_iter.next();
@@ -72,9 +74,33 @@ fn sliding_windows_4() {
 
 #[test]
 fn sliding_windows_5() {
-    let mut storage: Storage<u32> = Storage::new(0);
-    let mut iter = Adaptor::new(0..5, &mut storage);
+    let range = 0..5;
+    let mut storage: Storage<u32> = Storage::optimized(&range, 0);
+    let mut iter = Adaptor::new(range, &mut storage);
 
     assert!(iter.next().is_none());
     assert!(iter.next().is_none());
+}
+
+#[test]
+fn sliding_windows_6() {
+    let range0 = 0..0;
+    let range1 = 0..1;
+    let range2 = 0..2;
+
+    let storage0: Storage<u32> = Storage::optimized(&range0, 1);
+    let storage0: Vec<u32> = storage0.into();
+    assert_eq!(storage0.capacity(), 2);
+
+    let storage1: Storage<u32> = Storage::optimized(&range1, 1);
+    let storage1: Vec<u32> = storage1.into();
+    assert_eq!(storage1.capacity(), 1);
+
+    let storage2: Storage<u32> = Storage::optimized(&range2, 1);
+    let storage2: Vec<u32> = storage2.into();
+    assert_eq!(storage2.capacity(), 2);
+
+    let storage3: Storage<u32> = Storage::optimized(&range2, 3);
+    let storage3: Vec<u32> = storage3.into();
+    assert_eq!(storage3.capacity(), 2);
 }

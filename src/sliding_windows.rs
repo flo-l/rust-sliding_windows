@@ -15,6 +15,28 @@ pub struct Storage<T> {
 }
 
 impl<T> Storage<T> {
+    /// Create a new `Storage` with a given window size optimized for a given Iterator.
+    /// This will allocate an amount of memory big enough to avoid shifting elements during iteration.
+    ///
+    /// This should be the most performant option, which uses the most memory: ```Iterator::size_hint() * mem::size_of<Iterator::Item>```.
+    /// If there is no size_hint, this is identical to `Storage::new()`.
+    ///
+    /// If you want to use less memory, but more CPU, consider using ```Storage::new()``` or ```Storage::new_exact()``` instead.
+    ///
+    /// See [sliding_windows](index.html) for more information.
+    pub fn optimized<I: Iterator>(iter: &I, window_size: usize) -> Storage<T> {
+        let size = iter.size_hint();
+        let mem = size.1.unwrap_or(size.0);
+
+        if mem == 0 {
+            Storage::new(window_size)
+        } else if mem < window_size {
+            Storage::new_exact(mem)
+        } else {
+            Storage::from_vec(Vec::with_capacity(mem), window_size)
+        }
+    }
+
     /// Create a new `Storage` with a given window size.
     /// This will allocate twice as much memory as is needed to store the Window for performance reasons.
     ///
@@ -26,7 +48,7 @@ impl<T> Storage<T> {
     }
 
     /// Create a new `Storage` with a given window size.
-    /// This will allocate as much memory as is needed to store the Window automatically.
+    /// This will allocate exactly as much memory as is needed to store the Window.
     ///
     /// See [sliding_windows](index.html) for more information.
     pub fn new_exact(window_size: usize) -> Storage<T> {
@@ -70,7 +92,7 @@ impl<T> Storage<T> {
             if data.len() == data.capacity() {
                 data.drain(0..window_offset+1);
                 self.window_offset.set(0);
-            // storage is has min. window_size elements, so offset must be increased
+            // storage has min. window_size elements, so offset must be increased
             } else {
                 self.window_offset.set(window_offset + 1);
             }
