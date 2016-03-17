@@ -22,12 +22,7 @@ impl<T> Storage<T> {
     ///
     /// See [sliding_windows](index.html) for more information.
     pub fn new(window_size: usize) -> Storage<T> {
-        Storage {
-            window_size: window_size,
-            window_offset: Cell::new(0),
-            uniquely_owned: Cell::new(true),
-            data: UnsafeCell::new(Vec::with_capacity(window_size * 2))
-        }
+        Storage::from_vec(Vec::with_capacity(window_size * 2), window_size)
     }
 
     /// Create a new `Storage` with a given window size.
