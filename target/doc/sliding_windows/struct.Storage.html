@@ -52,7 +52,17 @@
 }</pre><div class='docblock'><p>This holds the backing allocation for the <code>Window</code> of a <code>Adaptor</code>.</p>
 
 <p>See <a href="index.html">sliding_windows</a> for more information.</p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='struct' href='../sliding_windows/struct.Storage.html' title='sliding_windows::Storage'>Storage</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(window_size: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../sliding_windows/struct.Storage.html' title='sliding_windows::Storage'>Storage</a>&lt;T&gt;</code></h4>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='struct' href='../sliding_windows/struct.Storage.html' title='sliding_windows::Storage'>Storage</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.optimized' class='method'><code>fn <a href='#method.optimized' class='fnname'>optimized</a>&lt;I: <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.Iterator.html' title='core::iter::Iterator'>Iterator</a>&gt;(iter: &amp;I, window_size: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../sliding_windows/struct.Storage.html' title='sliding_windows::Storage'>Storage</a>&lt;T&gt;</code></h4>
+<div class='docblock'><p>Create a new <code>Storage</code> with a given window size optimized for a given Iterator.
+This will allocate an amount of memory big enough to avoid shifting elements during iteration.</p>
+
+<p>This should be the most performant option, which uses the most memory: <code>Iterator::size_hint() * mem::size_of&lt;Iterator::Item&gt;</code>.
+If there is no size_hint, this is identical to <code>Storage::new()</code>.</p>
+
+<p>If you want to use less memory, but more CPU, consider using <code>Storage::new()</code> or <code>Storage::new_exact()</code> instead.</p>
+
+<p>See <a href="index.html">sliding_windows</a> for more information.</p>
+</div><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(window_size: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../sliding_windows/struct.Storage.html' title='sliding_windows::Storage'>Storage</a>&lt;T&gt;</code></h4>
 <div class='docblock'><p>Create a new <code>Storage</code> with a given window size.
 This will allocate twice as much memory as is needed to store the Window for performance reasons.</p>
 
@@ -61,7 +71,7 @@ This will allocate twice as much memory as is needed to store the Window for per
 <p>See <a href="index.html">sliding_windows</a> for more information.</p>
 </div><h4 id='method.new_exact' class='method'><code>fn <a href='#method.new_exact' class='fnname'>new_exact</a>(window_size: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../sliding_windows/struct.Storage.html' title='sliding_windows::Storage'>Storage</a>&lt;T&gt;</code></h4>
 <div class='docblock'><p>Create a new <code>Storage</code> with a given window size.
-This will allocate as much memory as is needed to store the Window automatically.</p>
+This will allocate exactly as much memory as is needed to store the Window.</p>
 
 <p>See <a href="index.html">sliding_windows</a> for more information.</p>
 </div><h4 id='method.from_vec' class='method'><code>fn <a href='#method.from_vec' class='fnname'>from_vec</a>&lt;S: <a class='trait' href='https://doc.rust-lang.org/nightly/core/convert/trait.Into.html' title='core::convert::Into'>Into</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;T&gt;&gt;&gt;(vec: S, window_size: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../sliding_windows/struct.Storage.html' title='sliding_windows::Storage'>Storage</a>&lt;T&gt;</code></h4>
@@ -114,7 +124,7 @@ This will reuse the allocation of the Vec instead of allocating new memory.</p>
 
                 <p>
                     Search functions by type signature (e.g.
-                    <code>vec -> usize</code>)
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
                 </p>
             </div>
         </div>

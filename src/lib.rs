@@ -4,7 +4,7 @@
 //!
 //! As a consequence it violates the Iterator protocol slightly. It is not possible to have two Windows into the data
 //! available at the same time. This is checked during runtime. If this check fails, the Adaptor panicks in ```next()```.
-//! More information can be found in the section [Panics](index.html/#panics).
+//! More information can be found in the section [Panics](#panics).
 //!
 //! There are some options regarding the constructor for Storage, which affect performance greatly.
 //! Consult the [docs for Storage](struct.Storage.html) for details.
