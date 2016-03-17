@@ -5,6 +5,9 @@ This crate offers an ```Iterator``` adaptor, which yields "sliding windows" over
 
 It's worth to note that it does **not** copy elements, which makes the code relatively performant.
 
+As a consequence it violates the Iterator protocol slightly. It is not possible to have two Windows into the data
+available at the same time. This is checked during runtime.
+
 The backing storage is a ```Vec```, so this Iterator adaptor is not ideal for very large windows (>20 elements or very huge elements).
 
 I'd happily accept a PR to implement the same functionality with a ```VecDeque``` or similar, see this [issue](https://github.com/flo-l/rust-sliding_windows/issues/2).
