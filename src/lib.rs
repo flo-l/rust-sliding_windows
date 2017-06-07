@@ -51,7 +51,7 @@
 //!
 //! let reusing_alloca: Vec<u32> = storage.into();
 //! // keep using allocation of storage
-//! 
+//!
 //! ```
 //!
 //! ### Panics:
@@ -71,18 +71,18 @@
 //!     let a = windowed_iter.next();
 //!     //let b = windowed_iter.next(); => this would PANIC
 //! }
-//! 
+//!
 //! // looping for example is fine though
 //! for _ in windowed_iter {
 //!     // blah
 //! }
 //! ```
-//! 
+//!
 //! # Mutable Window:
 //!
 //! Window does not only dereference to an immutable slice of `Self::Item`, it also dereferences
 //! to a mutable slice of `Self::Item`. Items of the mutable slice may be mutated freely.
-//! 
+//!
 //! However be aware that changes made to the items in the Window are persistent through calls to `next()`.
 
 mod sliding_windows;

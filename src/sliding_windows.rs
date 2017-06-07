@@ -3,7 +3,7 @@ use std::ops::{Deref, DerefMut};
 use std::fmt;
 
 /// This holds the backing allocation for the `Window` of a `Adaptor`.
-/// 
+///
 /// See [sliding_windows](index.html) for more information.
 pub struct Storage<T> {
     window_size: usize,
@@ -145,7 +145,7 @@ impl<T> Into<Vec<T>> for Storage<T> {
 /// }
 /// ```
 ///
-/// See [sliding_windows](index.html) for more information. 
+/// See [sliding_windows](index.html) for more information.
 pub struct Window<'a, T: 'a> {
     drop_flag: &'a Cell<bool>,
     data: &'a mut [T],
