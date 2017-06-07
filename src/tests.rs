@@ -62,10 +62,14 @@ fn sliding_windows_4() {
     let mut storage4: Storage<u32> = Storage::new(6);
     let iter4 = Adaptor::new(42..42, &mut storage4);
 
+    let mut storage5: Storage<u32> = Storage::new(6);
+    let iter5 = Adaptor::new(42.., &mut storage5);
+
     assert_eq!(iter1.size_hint(), (3, Some(3)));
     assert_eq!(iter2.size_hint(), (1, Some(1)));
     assert_eq!(iter3.size_hint(), (1, Some(1)));
     assert_eq!(iter4.size_hint(), (0, Some(0)));
+    assert_eq!(iter5.size_hint().1, None);
 }
 
 #[test]
