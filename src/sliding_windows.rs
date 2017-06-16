@@ -1,5 +1,4 @@
 use std::cell::{Cell, UnsafeCell};
-use std::ops::{Deref, DerefMut};
 use std::fmt;
 
 /// This holds the backing allocation for the `Window` of a `Adaptor`.
@@ -7,36 +6,14 @@ use std::fmt;
 /// See [sliding_windows](index.html) for more information.
 pub struct Storage<T> {
     window_size: usize,
-    // use elements just from this offset on
+    // this is the offset of the first element
     window_offset: Cell<usize>,
     /// acts as a refcount
     uniquely_owned: Cell<bool>,
-    data: UnsafeCell<Vec<T>>
+    data: UnsafeCell<Vec<T>>,
 }
 
 impl<T> Storage<T> {
-    /// Create a new `Storage` with a given window size optimized for a given Iterator.
-    /// This will allocate an amount of memory big enough to avoid shifting elements during iteration.
-    ///
-    /// This should be the most performant option, which uses the most memory: ```Iterator::size_hint() * mem::size_of<Iterator::Item>```.
-    /// If there is no size_hint, this is identical to `Storage::new()`.
-    ///
-    /// If you want to use less memory, but more CPU, consider using ```Storage::new()``` or ```Storage::new_exact()``` instead.
-    ///
-    /// See [sliding_windows](index.html) for more information.
-    pub fn optimized<I: Iterator>(iter: &I, window_size: usize) -> Storage<T> {
-        let size = iter.size_hint();
-        let mem = size.1.unwrap_or(size.0);
-
-        if mem == 0 {
-            Storage::new(window_size)
-        } else if mem < window_size {
-            Storage::new_exact(mem)
-        } else {
-            Storage::from_vec(Vec::with_capacity(mem), window_size)
-        }
-    }
-
     /// Create a new `Storage` with a given window size.
     /// This will allocate twice as much memory as is needed to store the Window for performance reasons.
     ///
@@ -44,14 +21,6 @@ impl<T> Storage<T> {
     ///
     /// See [sliding_windows](index.html) for more information.
     pub fn new(window_size: usize) -> Storage<T> {
-        Storage::from_vec(Vec::with_capacity(window_size * 2), window_size)
-    }
-
-    /// Create a new `Storage` with a given window size.
-    /// This will allocate exactly as much memory as is needed to store the Window.
-    ///
-    /// See [sliding_windows](index.html) for more information.
-    pub fn new_exact(window_size: usize) -> Storage<T> {
         Storage::from_vec(Vec::with_capacity(window_size), window_size)
     }
 
@@ -77,29 +46,37 @@ impl<T> Storage<T> {
 
         self.uniquely_owned.set(false);
 
-        Window { drop_flag: &self.uniquely_owned, data: &mut data[window_offset..] }
+        Window { drop_flag: &self.uniquely_owned, data: &mut data[..], window_offset: window_offset }
     }
 
-    // push value onto self
-    // this should only be called if data.len() >= window_size
+    // push value onto self, return true if window is full (for initialization)
+    // this assumes that data.capacity >= self.window_size
     fn push(&self, elt: T) -> bool {
         assert!(self.uniquely_owned.get(), "next() called before previous Window went out of scope");
         let data = unsafe { &mut *self.data.get() };
         let window_offset = self.window_offset.get();
 
-        if data.len() >= self.window_size {
-            // storage is full, copy elements to the front with drain
-            if data.len() == data.capacity() {
-                data.drain(0..window_offset+1);
-                self.window_offset.set(0);
-            // storage has min. window_size elements, so offset must be increased
-            } else {
-                self.window_offset.set(window_offset + 1);
-            }
+        // if storage is not full simply push the element
+        // this is only the case when filling storage initially
+        if data.len() < self.window_size
+        {
+            data.push(elt);
+            return data.len() == self.window_size;
         }
 
-        data.push(elt);
-        data.len() >= self.window_size
+        debug_assert!(data.len() == self.window_size);
+
+        // the storage is full, overwrite the last element
+        let new_offset;
+        if window_offset >= (self.window_size - 1) {
+            new_offset = 0;
+        } else {
+            new_offset = window_offset + 1;
+        }
+
+        data[window_offset] = elt;
+        self.window_offset.set(new_offset);
+        true
     }
 
     // clear backing storage
@@ -123,7 +100,7 @@ impl<T> Into<Vec<T>> for Storage<T> {
 ///
 /// # Usage:
 ///
-/// `Window<'a, T>` dereferences to `&'a [T]` or `&'a mut [T]`.
+/// `Window<'a, T>` is an Iterator over &T.
 ///
 /// ```
 /// use sliding_windows::IterExt;
@@ -148,13 +125,16 @@ impl<T> Into<Vec<T>> for Storage<T> {
 /// See [sliding_windows](index.html) for more information.
 pub struct Window<'a, T: 'a> {
     drop_flag: &'a Cell<bool>,
+    // index of first element
+    window_offset: usize,
     data: &'a mut [T],
 }
 
 impl<'a, T> fmt::Debug for Window<'a, T> where T: fmt::Debug
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.data.fmt(f)
+        f.write_str("Window")?;
+        return f.debug_list().entries(self.into_iter()).finish();
     }
 }
 
@@ -165,30 +145,64 @@ impl<'a, T> Drop for Window<'a, T> {
     }
 }
 
-// convenience impl &Window<T> => &[T]
-impl<'a, T> Deref for Window<'a, T> {
-    type Target = [T];
-
-    fn deref(&self) -> &[T] {
-        debug_assert!(!self.drop_flag.get());
-        &*self.data
-    }
-}
-
-// convenience impl &mut Window<T> => &mut [T]
-impl<'a, T> DerefMut for Window<'a, T> {
-    fn deref_mut(&mut self) -> &mut [T] {
-        debug_assert!(!self.drop_flag.get());
-        self.data
-    }
-}
-
 impl<'a, 'b, T> PartialEq<&'b [T]> for Window<'a, T> where T: PartialEq
 {
     fn eq(&self, other: &&'b [T]) -> bool {
-        &self[..] == *other
+        if self.data.len() != other.len() { return false }
+        for (i, x) in self.into_iter().enumerate() {
+            if *x != other[i] { return false }
+        }
+        true
     }
 }
+
+impl<'a, T> IntoIterator for &'a Window<'a, T>
+{
+    type Item = &'a T;
+    type IntoIter = WindowIter<'a, T>;
+    fn into_iter(self) -> Self::IntoIter {
+        WindowIter {
+            data: self.data,
+            current_index: self.window_offset,
+            iteration_num: 0
+        }
+    }
+}
+
+pub struct WindowIter<'a, T: 'a>
+{
+    data: &'a [T],
+    current_index: usize,
+    // number of next() calls made which returned Some(_)
+    iteration_num: usize,
+}
+
+impl<'a, T> Iterator for WindowIter<'a, T>
+{
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let current_element = &self.data[self.current_index];
+
+        if self.iteration_num >= self.data.len() {
+            // the end was reached
+            return None;
+        } else if self.current_index >= (self.data.len() - 1) {
+            // wrap around if the increment would create an invalid index
+            self.current_index = 0;
+        } else {
+            self.current_index += 1;
+        }
+
+        self.iteration_num += 1;
+        Some(current_element)
+    }
+}
+
+// TODO add WindowMutIter
+
+// TODO add ExactSizeIterator
+// TODO add other stuff like DoubleEndedIterator etc.
 
 /// See [sliding_windows](index.html) for more information.
 pub struct Adaptor<'a, I: Iterator> where <I as Iterator>::Item: 'a {
@@ -218,15 +232,17 @@ impl<'a, I: Iterator> Iterator for Adaptor<'a, I> {
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.done || self.storage.window_size == 0 {
-            return None
+            return None;
         }
         self.done = true;
+
         for elt in &mut self.iter {
+            self.done = false;
             if self.storage.push(elt) {
-                self.done = false;
                 break;
             }
         }
+
         if !self.done {
             // return new window
             Some(self.storage.new_window())
