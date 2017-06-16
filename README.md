@@ -3,7 +3,7 @@ sliding_windows
 
 This crate offers an ```Iterator``` adaptor, which yields "sliding windows" over the elements returned by the wrapped iterator.
 
-It's worth to note that it does **not** copy elements, which makes the code relatively performant.
+It's worth to note that it does **not** copy elements, which makes the code several orders of mignitudes faster than naive copying variants.
 
 As a consequence it violates the Iterator protocol slightly. It is not possible to have two Windows into the data
 available at the same time. This is checked during runtime.
