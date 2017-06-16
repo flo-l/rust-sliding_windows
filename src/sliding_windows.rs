@@ -2,7 +2,7 @@ use std::cell::{Cell, UnsafeCell};
 use std::fmt;
 use std::marker::PhantomData;
 
-/// This holds the backing allocation for the `Window` of a `Adaptor`.
+/// This holds the backing allocation for the `Window` of an `Adaptor`.
 ///
 /// See [sliding_windows](index.html) for more information.
 pub struct Storage<T> {
@@ -16,16 +16,14 @@ pub struct Storage<T> {
 
 impl<T> Storage<T> {
     /// Create a new `Storage` with a given window size.
-    /// This will allocate twice as much memory as is needed to store the Window for performance reasons.
-    ///
-    /// If you want to use as few memory as possible, but more CPU, consider using ```Storage::new_exact()``` instead.
+    /// This will allocate `window_size * sizeof::<T>` bytes on the heap.
     ///
     /// See [sliding_windows](index.html) for more information.
     pub fn new(window_size: usize) -> Storage<T> {
         Storage::from_vec(Vec::with_capacity(window_size), window_size)
     }
 
-    /// Create a new `Storage` with a given window size from a given struct implementing `Into<Vec>`.
+    /// Create a new `Storage` with a given window size from a given type implementing `Into<Vec>`.
     /// The contents of the Vec will be removed.
     /// This will reuse the allocation of the Vec instead of allocating new memory.
     ///
@@ -101,7 +99,7 @@ impl<T> Into<Vec<T>> for Storage<T> {
 ///
 /// # Usage:
 ///
-/// `&Window<'a, T>` implements `into_iter()`, which returns an Iterator over `&T`.
+/// Use [WindowIter](struct.WindowIter.html) or [WindowIterMut](struct.WindowIterMut.html) to access the elements of the Window.
 ///
 /// ```
 /// use sliding_windows::IterExt;
