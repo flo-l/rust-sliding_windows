@@ -22,7 +22,7 @@ I'd happily accept a PR to implement the same functionality with a ```VecDeque``
 Add this to your ```Cargo.toml```.
 
     [dependencies]
-    sliding_windows = "2.0"
+    sliding_windows = "3.0"
 
 ### Example
 
@@ -30,16 +30,18 @@ Add this to your ```Cargo.toml```.
 extern crate sliding_windows;
 use sliding_windows::{IterExt, Storage};
 
-let mut storage: Storage<u32> = Storage::new(3);
+fn main() {
+    let mut storage: Storage<u32> = Storage::new(3);
 
-for x in (0..5).sliding_windows(&mut storage) {
-    println!("{:?}", x);
+    for x in (0..5).sliding_windows(&mut storage) {
+        println!("{:?}", x);
+    }
 }
 
 // This outputs:
-// [0, 1, 2]
-// [1, 2, 3]
-// [2, 3, 4]
+// Window[0, 1, 2]
+// Window[1, 2, 3]
+// Window[2, 3, 4]
 ```
 
 For more examples please consult the [Documentation](https://flo-l.github.io/rust-sliding_windows/).
