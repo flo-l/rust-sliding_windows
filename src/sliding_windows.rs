@@ -1,6 +1,8 @@
 use std::cell::{Cell, UnsafeCell};
 use std::fmt;
 use std::marker::PhantomData;
+#[cfg(nightly)]
+use std::iterator::FusedIterator;
 
 /// This holds the backing allocation for the `Window` of an `Adaptor`.
 ///
@@ -216,7 +218,15 @@ impl<'a, T> Iterator for WindowIter<'a, T>
         self.iteration_num += 1;
         Some(current_element)
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.data.len(), Some(self.data.len()))
+    }
 }
+
+impl<'a, T> ExactSizeIterator for WindowIter<'a, T> {}
+#[cfg(nightly)]
+impl<'a, T> FusedIterator for WindowIter<'a, T> {}
 
 pub struct WindowIterMut<'a, T: 'a>
 {
@@ -248,9 +258,16 @@ impl<'a, T> Iterator for WindowIterMut<'a, T>
         self.iteration_num += 1;
         Some(current_element)
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.data_len, Some(self.data_len))
+    }
 }
 
-// TODO add ExactSizeIterator
+impl<'a, T> ExactSizeIterator for WindowIterMut<'a, T> {}
+#[cfg(nightly)]
+impl<'a, T> FusedIterator for WindowIterMut<'a, T> {}
+
 // TODO add other stuff like DoubleEndedIterator etc.
 
 /// See [sliding_windows](index.html) for more information.
