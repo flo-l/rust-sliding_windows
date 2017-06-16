@@ -90,7 +90,7 @@ mod sliding_windows;
 mod tests;
 
 pub use sliding_windows::{
-    Storage, Adaptor };
+    Storage, Adaptor, Window, WindowIter, WindowIterMut};
 
 pub trait IterExt: Iterator {
     fn sliding_windows(self, storage: &mut Storage<Self::Item>)
