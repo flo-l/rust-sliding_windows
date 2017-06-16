@@ -1,17 +1,17 @@
 //! This crate provides an iterator adaptor that yields sliding windows into the elements of the wrapped Iterator.
 //!
-//! Note that this adaptor does **NOT** clone the whole window on every call to `next()`.
+//! Note that this adaptor does **NEVER** clone any element for huge speed gains.
 //!
 //! As a consequence it violates the Iterator protocol slightly. It is not possible to have two Windows into the data
 //! available at the same time. This is checked during runtime. If this check fails, the Adaptor panicks in ```next()```.
 //! More information can be found in the section [Panics](#panics).
 //!
-//! There are some options regarding the constructor for Storage, which affect performance greatly.
+//! There are some options regarding the constructor for Storage, which allow reuse of an allocation.
 //! Consult the [docs for Storage](struct.Storage.html) for details.
 //!
 //! Iterator element type is `Window<'a, Self::Item>`.
 //!
-//! Note: `Window<'a, Self::Item>` dereferences to `&'a [Self::Item]` or `&'a mut [Self::Item]`
+//! Note: `Window<'a, Self::Item>` implements `iter()` and `iter_mut()`, which return Iterators over the elements of the `Window`.
 //!
 //! This iterator is *fused*.
 //!
@@ -22,9 +22,9 @@
 //! use sliding_windows::Storage;
 //!
 //! let iter = 0..5;
-//! let mut storage: Storage<u32> = Storage::optimized(&iter, 3);
+//! let mut storage: Storage<u32> = Storage::new(3);
 //! let windowed_iter = iter.sliding_windows(&mut storage);
-//! let output: Vec<Vec<u32>> = windowed_iter.map(|x| From::from(&x[..])).collect();
+//! let output: Vec<Vec<u32>> = windowed_iter.map(|x| x.iter().map(|&x| x).collect()).collect();
 //! let expected: &[&[u32]] = &[&[0,1,2], &[1,2,3], &[2,3,4]];
 //!
 //! assert_eq!(output, expected);
@@ -45,7 +45,7 @@
 //! // extra scope so that windowed_iter doesn't outlive storage.into() call
 //! {
 //!     let windowed_iter = (0..5).sliding_windows(&mut storage);
-//!     let output: Vec<Vec<u32>> = windowed_iter.map(|x| From::from(&x[..])).collect();
+//!     let output: Vec<Vec<u32>> = windowed_iter.map(|x| x.iter().map(|&x| x).collect()).collect();
 //!     assert_eq!(output, expected);
 //! }
 //!
@@ -80,8 +80,8 @@
 //!
 //! # Mutable Window:
 //!
-//! Window does not only dereference to an immutable slice of `Self::Item`, it also dereferences
-//! to a mutable slice of `Self::Item`. Items of the mutable slice may be mutated freely.
+//! There is an implementation of an Iterator over `&'a mut T` for `Window<'a, T>`. It can be obtained
+//! by calling `iter_mut()`. For more information see [`Window<'a, T>`](struct.Window.html).
 //!
 //! However be aware that changes made to the items in the Window are persistent through calls to `next()`.
 
