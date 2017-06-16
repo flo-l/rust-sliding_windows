@@ -52,7 +52,7 @@
 <pre class='rust struct'>pub struct Window&lt;'a, T:&nbsp;'a&gt; { /* fields omitted */ }</pre><div class='docblock'><p>This is the <code>Item</code> type of the <code>Adaptor</code> iterator.</p>
 
 <h1 id='usage' class='section-header'><a href='#usage'>Usage:</a></h1>
-<p><code>&amp;Window&lt;&#39;a, T&gt;</code> implements <code>into_iter()</code>, which returns an Iterator over <code>&amp;T</code>.</p>
+<p>Use <a href="struct.WindowIter.html">WindowIter</a> or <a href="struct.WindowIterMut.html">WindowIterMut</a> to access the elements of the Window.</p>
 
 <pre class="rust rust-example-rendered">
 <span class="kw">use</span> <span class="ident">sliding_windows</span>::<span class="ident">IterExt</span>;

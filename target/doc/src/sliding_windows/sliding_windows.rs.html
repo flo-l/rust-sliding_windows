@@ -372,12 +372,29 @@
 <span id="327">327</span>
 <span id="328">328</span>
 <span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::{<span class="ident">Cell</span>, <span class="ident">UnsafeCell</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">nightly</span>)]</span>
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">iterator</span>::<span class="ident">FusedIterator</span>;
 
-<span class="doccomment">/// This holds the backing allocation for the `Window` of a `Adaptor`.</span>
+<span class="doccomment">/// This holds the backing allocation for the `Window` of an `Adaptor`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See [sliding_windows](index.html) for more information.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
@@ -391,16 +408,14 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Create a new `Storage` with a given window size.</span>
-    <span class="doccomment">/// This will allocate twice as much memory as is needed to store the Window for performance reasons.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If you want to use as few memory as possible, but more CPU, consider using ```Storage::new_exact()``` instead.</span>
+    <span class="doccomment">/// This will allocate `window_size * sizeof::&lt;T&gt;` bytes on the heap.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See [sliding_windows](index.html) for more information.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">window_size</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident">Storage</span>::<span class="ident">from_vec</span>(<span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">window_size</span>), <span class="ident">window_size</span>)
     }
 
-    <span class="doccomment">/// Create a new `Storage` with a given window size from a given struct implementing `Into&lt;Vec&gt;`.</span>
+    <span class="doccomment">/// Create a new `Storage` with a given window size from a given type implementing `Into&lt;Vec&gt;`.</span>
     <span class="doccomment">/// The contents of the Vec will be removed.</span>
     <span class="doccomment">/// This will reuse the allocation of the Vec instead of allocating new memory.</span>
     <span class="doccomment">///</span>
@@ -476,7 +491,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Usage:</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// `&amp;Window&lt;&#39;a, T&gt;` implements `into_iter()`, which returns an Iterator over `&amp;T`.</span>
+<span class="doccomment">/// Use [WindowIter](struct.WindowIter.html) or [WindowIterMut](struct.WindowIterMut.html) to access the elements of the Window.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">/// use sliding_windows::IterExt;</span>
@@ -593,7 +608,15 @@
         <span class="self">self</span>.<span class="ident">iteration_num</span> <span class="op">+=</span> <span class="number">1</span>;
         <span class="prelude-val">Some</span>(<span class="ident">current_element</span>)
     }
+
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+        (<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">len</span>(), <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">len</span>()))
+    }
 }
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">WindowIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">nightly</span>)]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">WindowIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {}
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WindowIterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span>
 {
@@ -625,9 +648,16 @@
         <span class="self">self</span>.<span class="ident">iteration_num</span> <span class="op">+=</span> <span class="number">1</span>;
         <span class="prelude-val">Some</span>(<span class="ident">current_element</span>)
     }
+
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+        (<span class="self">self</span>.<span class="ident">data_len</span>, <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">data_len</span>))
+    }
 }
 
-<span class="comment">// TODO add ExactSizeIterator</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">WindowIterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">nightly</span>)]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">WindowIterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {}
+
 <span class="comment">// TODO add other stuff like DoubleEndedIterator etc.</span>
 
 <span class="doccomment">/// See [sliding_windows](index.html) for more information.</span>
