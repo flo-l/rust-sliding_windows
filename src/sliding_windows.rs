@@ -1,5 +1,6 @@
 use std::cell::{Cell, UnsafeCell};
 use std::fmt;
+use std::marker::PhantomData;
 
 /// This holds the backing allocation for the `Window` of a `Adaptor`.
 ///
@@ -100,7 +101,7 @@ impl<T> Into<Vec<T>> for Storage<T> {
 ///
 /// # Usage:
 ///
-/// `Window<'a, T>` is an Iterator over &T.
+/// `&Window<'a, T>` implements `into_iter()`, which returns an Iterator over `&T`.
 ///
 /// ```
 /// use sliding_windows::IterExt;
@@ -112,13 +113,16 @@ impl<T> Into<Vec<T>> for Storage<T> {
 /// for mut window in windowed_iter {
 ///     // extra scope, so that later mutable borrow is possible
 ///     {
-///         let slice: &[u32] = &window;
-///         // work with slice
+///         for x in &window {
+///             // work with data immutably
+///         }
 ///     }
 ///
 ///     // mutable
-///     let mut_slice: &mut [u32] = &mut window;
-///     // work with data mutably
+///     let mut iter_mut = window.iter_mut();
+///     for x in iter_mut {
+///         // work with data mutably (affecting the next windows of course)
+///     }
 /// }
 /// ```
 ///
@@ -128,6 +132,27 @@ pub struct Window<'a, T: 'a> {
     // index of first element
     window_offset: usize,
     data: &'a mut [T],
+}
+
+impl<'a, T> Window<'a, T>
+{
+    pub fn iter(&self) -> WindowIter<T> {
+        WindowIter {
+            data: self.data,
+            current_index: self.window_offset,
+            iteration_num: 0
+        }
+    }
+
+    pub fn iter_mut(&mut self) -> WindowIterMut<T> {
+        WindowIterMut {
+            data: self.data.as_mut_ptr(),
+            data_len: self.data.len(),
+            current_index: self.window_offset,
+            iteration_num: 0,
+            _p: PhantomData
+        }
+    }
 }
 
 impl<'a, T> fmt::Debug for Window<'a, T> where T: fmt::Debug
@@ -161,11 +186,7 @@ impl<'a, T> IntoIterator for &'a Window<'a, T>
     type Item = &'a T;
     type IntoIter = WindowIter<'a, T>;
     fn into_iter(self) -> Self::IntoIter {
-        WindowIter {
-            data: self.data,
-            current_index: self.window_offset,
-            iteration_num: 0
-        }
+        self.iter()
     }
 }
 
@@ -199,7 +220,37 @@ impl<'a, T> Iterator for WindowIter<'a, T>
     }
 }
 
-// TODO add WindowMutIter
+pub struct WindowIterMut<'a, T: 'a>
+{
+    data: *mut T,
+    data_len: usize,
+    current_index: usize,
+    // number of next() calls made which returned Some(_)
+    iteration_num: usize,
+    _p: PhantomData<&'a T>,
+}
+
+impl<'a, T> Iterator for WindowIterMut<'a, T>
+{
+    type Item = &'a mut T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let current_element = unsafe { self.data.offset(self.current_index as isize).as_mut().unwrap() };
+
+        if self.iteration_num >= self.data_len {
+            // the end was reached
+            return None;
+        } else if self.current_index >= (self.data_len - 1) {
+            // wrap around if the increment would create an invalid index
+            self.current_index = 0;
+        } else {
+            self.current_index += 1;
+        }
+
+        self.iteration_num += 1;
+        Some(current_element)
+    }
+}
 
 // TODO add ExactSizeIterator
 // TODO add other stuff like DoubleEndedIterator etc.

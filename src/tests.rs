@@ -7,10 +7,7 @@ fn sliding_windows_1() {
 
         {
             let windowed_iter = Adaptor::new(0..5, &mut storage);
-            let output: Vec<Vec<u32>> = windowed_iter.map(|x| {
-                println!("{:?}", x);
-                x.into_iter().map(|&x| x).collect()
-            }).collect();
+            let output: Vec<Vec<u32>> = windowed_iter.map(|x| x.into_iter().map(|&x| x).collect()).collect();
             assert_eq!(output, expected);
         }
     }
@@ -27,15 +24,17 @@ fn sliding_windows_1() {
 }
 
 #[test]
-#[ignore]
 fn sliding_windows_2() {
     let it = 0..5;
     let mut storage: Storage<u32> = Storage::new(3);
     let windowed_iter = Adaptor::new(it, &mut storage);
 
-    for mut x in windowed_iter {
-        // TODO reenable x[1] = 0u32;
-        // TODO reenable assert_eq!(x[0], 0);
+    for mut window in windowed_iter {
+        let mut iter_mut = window.iter_mut();
+        let element_0 = iter_mut.next().unwrap();
+        let mut element_1 = iter_mut.next().unwrap();
+        *element_1 = 0u32;
+        assert_eq!(*element_0, 0);
     }
 }
 
