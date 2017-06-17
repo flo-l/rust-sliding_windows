@@ -85,9 +85,18 @@
 //!
 //! However be aware that changes made to the items in the Window are persistent through calls to `next()`.
 
-mod sliding_windows;
+#![cfg_attr(test, feature(test))]
+
+#[cfg(test)]
+extern crate test;
+
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod benches;
+
+mod sliding_windows;
 
 pub use sliding_windows::{
     Storage, Adaptor, Window, WindowIter, WindowIterMut};
