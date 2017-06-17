@@ -31,11 +31,17 @@ impl<T> Storage<T> {
     ///
     /// See [sliding_windows](index.html) for more information.
     pub fn from_vec<S: Into<Vec<T>>>(vec: S, window_size: usize) -> Storage<T> {
+        let mut vec = vec.into();
+        let missing: isize = window_size as isize - vec.capacity() as isize;
+        if missing > 0 {
+            vec.reserve_exact(missing as usize);
+        }
+
         Storage {
             window_size: window_size,
             window_offset: Cell::new(0),
             uniquely_owned: Cell::new(true),
-            data: UnsafeCell::new(vec.into())
+            data: UnsafeCell::new(vec)
         }
     }
 
@@ -81,7 +87,7 @@ impl<T> Storage<T> {
     }
 
     // clear backing storage
-    fn clear(&self) {
+    fn clear(&mut self) {
         assert!(self.uniquely_owned.get(), "next() called before previous Window went out of scope");
         let data = unsafe { &mut *self.data.get() };
         data.clear();
@@ -281,7 +287,7 @@ impl<'a, I: Iterator> Adaptor<'a, I> {
     /// This creates a new Adaptor. Usually you should be using
     ///
     /// See [sliding_windows](index.html) for more information.
-    pub fn new(iter: I, storage: &'a Storage<I::Item>) -> Adaptor<'a, I> {
+    pub fn new(iter: I, storage: &'a mut Storage<I::Item>) -> Adaptor<'a, I> {
         // in case the storage was reused
         storage.clear();
 
