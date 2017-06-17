@@ -14,7 +14,7 @@ I'd happily accept a PR to implement the same functionality with a ```VecDeque``
 
 ### Links
 
-- [Documentation](https://flo-l.github.io/rust-sliding_windows/)
+- [Documentation](https://docs.rs/sliding_windows/)
 - [crates.io](https://crates.io/crates/sliding_windows)
 
 ### Install
@@ -44,7 +44,7 @@ fn main() {
 // Window[2, 3, 4]
 ```
 
-For more examples please consult the [Documentation](https://flo-l.github.io/rust-sliding_windows/).
+For more examples please consult the [Documentation](https://docs.rs/sliding_windows/).
 
 ### This functionality in other languages/crates
 
