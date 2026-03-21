@@ -1,4 +1,2 @@
-target/debug
-target/release
-target/package
+target/
 Cargo.lock
