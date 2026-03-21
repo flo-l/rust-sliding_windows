@@ -1,7 +1,6 @@
 use std::cell::{Cell, UnsafeCell};
 use std::fmt;
-#[cfg(nightly)]
-use std::iterator::FusedIterator;
+use std::iter::FusedIterator;
 use std::marker::PhantomData;
 
 /// This holds the backing allocation for the `Window` of an `Adaptor`.
@@ -248,7 +247,6 @@ impl<'a, T> Iterator for WindowIter<'a, T> {
 }
 
 impl<'a, T> ExactSizeIterator for WindowIter<'a, T> {}
-#[cfg(nightly)]
 impl<'a, T> FusedIterator for WindowIter<'a, T> {}
 
 pub struct WindowIterMut<'a, T: 'a> {
@@ -291,7 +289,6 @@ impl<'a, T> Iterator for WindowIterMut<'a, T> {
 }
 
 impl<'a, T> ExactSizeIterator for WindowIterMut<'a, T> {}
-#[cfg(nightly)]
 impl<'a, T> FusedIterator for WindowIterMut<'a, T> {}
 
 // TODO add other stuff like DoubleEndedIterator etc.
