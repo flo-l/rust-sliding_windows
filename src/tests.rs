@@ -3,19 +3,21 @@ use super::*;
 #[test]
 fn sliding_windows_1() {
     fn test_window_correctness_with_storage(mut storage: Storage<u32>) {
-        let expected: &[&[u32]] = &[&[0,1,2], &[1,2,3], &[2,3,4]];
+        let expected: &[&[u32]] = &[&[0, 1, 2], &[1, 2, 3], &[2, 3, 4]];
 
         {
             let windowed_iter = Adaptor::new(0..5, &mut storage);
-            let output: Vec<Vec<u32>> = windowed_iter.map(|x| x.into_iter().map(|&x| x).collect()).collect();
+            let output: Vec<Vec<u32>> = windowed_iter
+                .map(|x| x.into_iter().map(|&x| x).collect())
+                .collect();
             assert_eq!(output, expected);
         }
     }
 
     let middle_alloc: Storage<u32> = Storage::new(3);
-    let small_alloc:  Storage<u32> = Storage::from_vec(vec![1u32;   1], 3);
-    let exact_alloc:  Storage<u32> = Storage::from_vec(vec![1u32;   3], 3);
-    let big_alloc:    Storage<u32> = Storage::from_vec(vec![1u32, 100], 3);
+    let small_alloc: Storage<u32> = Storage::from_vec(vec![1u32; 1], 3);
+    let exact_alloc: Storage<u32> = Storage::from_vec(vec![1u32; 3], 3);
+    let big_alloc: Storage<u32> = Storage::from_vec(vec![1u32, 100], 3);
 
     test_window_correctness_with_storage(middle_alloc);
     test_window_correctness_with_storage(small_alloc);

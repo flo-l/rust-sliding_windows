@@ -98,16 +98,15 @@ mod benches;
 
 mod sliding_windows;
 
-pub use sliding_windows::{
-    Storage, Adaptor, Window, WindowIter, WindowIterMut};
+pub use sliding_windows::{Adaptor, Storage, Window, WindowIter, WindowIterMut};
 
 pub trait IterExt: Iterator {
-    fn sliding_windows(self, storage: &mut Storage<Self::Item>)
-        -> Adaptor<Self>
-        where Self: Sized
+    fn sliding_windows(self, storage: &mut Storage<Self::Item>) -> Adaptor<'_, Self>
+    where
+        Self: Sized,
     {
         Adaptor::new(self, storage)
     }
 }
 
-impl<T: ?Sized> IterExt for T where T: Iterator { }
+impl<T: ?Sized> IterExt for T where T: Iterator {}

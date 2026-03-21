@@ -1,10 +1,10 @@
-use test::test::Bencher;
 use super::*;
+use test::test::Bencher;
 
 #[bench]
 fn sliding_windows(b: &mut Bencher) {
     let num = 12;
-    let data: &[u8] = &[num; 1024*1024];
+    let data: &[u8] = &[num; 1024 * 1024];
     let mut storage: Storage<&u8> = Storage::new(10);
 
     b.iter(|| {
@@ -25,7 +25,7 @@ fn sliding_windows(b: &mut Bencher) {
 #[bench]
 fn slice_window(b: &mut Bencher) {
     let num = 12;
-    let data: &[u8] = &[num; 1024*1024];
+    let data: &[u8] = &[num; 1024 * 1024];
 
     b.iter(|| {
         let data = test::black_box(&data);

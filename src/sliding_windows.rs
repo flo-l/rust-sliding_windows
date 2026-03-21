@@ -1,8 +1,8 @@
 use std::cell::{Cell, UnsafeCell};
 use std::fmt;
-use std::marker::PhantomData;
 #[cfg(nightly)]
 use std::iterator::FusedIterator;
+use std::marker::PhantomData;
 
 /// This holds the backing allocation for the `Window` of an `Adaptor`.
 ///
@@ -41,32 +41,41 @@ impl<T> Storage<T> {
             window_size: window_size,
             window_offset: Cell::new(0),
             uniquely_owned: Cell::new(true),
-            data: UnsafeCell::new(vec)
+            data: UnsafeCell::new(vec),
         }
     }
 
     fn new_window<'a>(&'a self) -> Window<'a, T> {
         // assert that the last window went out of scope
-        assert!(self.uniquely_owned.get(), "next() called before previous Window went out of scope");
+        assert!(
+            self.uniquely_owned.get(),
+            "next() called before previous Window went out of scope"
+        );
         let data = unsafe { &mut *self.data.get() };
         let window_offset = self.window_offset.get();
 
         self.uniquely_owned.set(false);
 
-        Window { drop_flag: &self.uniquely_owned, data: &mut data[..], window_offset: window_offset }
+        Window {
+            drop_flag: &self.uniquely_owned,
+            data: &mut data[..],
+            window_offset: window_offset,
+        }
     }
 
     // push value onto self, return true if window is full (for initialization)
     // this assumes that data.capacity >= self.window_size
     fn push(&self, elt: T) -> bool {
-        assert!(self.uniquely_owned.get(), "next() called before previous Window went out of scope");
+        assert!(
+            self.uniquely_owned.get(),
+            "next() called before previous Window went out of scope"
+        );
         let data = unsafe { &mut *self.data.get() };
         let window_offset = self.window_offset.get();
 
         // if storage is not full simply push the element
         // this is only the case when filling storage initially
-        if data.len() < self.window_size
-        {
+        if data.len() < self.window_size {
             data.push(elt);
             return data.len() == self.window_size;
         }
@@ -88,7 +97,10 @@ impl<T> Storage<T> {
 
     // clear backing storage
     fn clear(&mut self) {
-        assert!(self.uniquely_owned.get(), "next() called before previous Window went out of scope");
+        assert!(
+            self.uniquely_owned.get(),
+            "next() called before previous Window went out of scope"
+        );
         let data = unsafe { &mut *self.data.get() };
         data.clear();
     }
@@ -96,10 +108,11 @@ impl<T> Storage<T> {
 
 impl<T> Into<Vec<T>> for Storage<T> {
     fn into(self) -> Vec<T> {
-        assert!(self.uniquely_owned.get(), "Storage dereferenced before previous Window went out of scope");
-        unsafe {
-            self.data.into_inner()
-        }
+        assert!(
+            self.uniquely_owned.get(),
+            "Storage dereferenced before previous Window went out of scope"
+        );
+        self.data.into_inner()
     }
 }
 
@@ -140,28 +153,29 @@ pub struct Window<'a, T: 'a> {
     data: &'a mut [T],
 }
 
-impl<'a, T> Window<'a, T>
-{
-    pub fn iter(&self) -> WindowIter<T> {
+impl<'a, T> Window<'a, T> {
+    pub fn iter(&self) -> WindowIter<'_, T> {
         WindowIter {
             data: self.data,
             current_index: self.window_offset,
-            iteration_num: 0
+            iteration_num: 0,
         }
     }
 
-    pub fn iter_mut(&mut self) -> WindowIterMut<T> {
+    pub fn iter_mut(&mut self) -> WindowIterMut<'_, T> {
         WindowIterMut {
             data: self.data.as_mut_ptr(),
             data_len: self.data.len(),
             current_index: self.window_offset,
             iteration_num: 0,
-            _p: PhantomData
+            _p: PhantomData,
         }
     }
 }
 
-impl<'a, T> fmt::Debug for Window<'a, T> where T: fmt::Debug
+impl<'a, T> fmt::Debug for Window<'a, T>
+where
+    T: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str("Window")?;
@@ -176,19 +190,24 @@ impl<'a, T> Drop for Window<'a, T> {
     }
 }
 
-impl<'a, 'b, T> PartialEq<&'b [T]> for Window<'a, T> where T: PartialEq
+impl<'a, 'b, T> PartialEq<&'b [T]> for Window<'a, T>
+where
+    T: PartialEq,
 {
     fn eq(&self, other: &&'b [T]) -> bool {
-        if self.data.len() != other.len() { return false }
+        if self.data.len() != other.len() {
+            return false;
+        }
         for (i, x) in self.into_iter().enumerate() {
-            if *x != other[i] { return false }
+            if *x != other[i] {
+                return false;
+            }
         }
         true
     }
 }
 
-impl<'a, T> IntoIterator for &'a Window<'a, T>
-{
+impl<'a, T> IntoIterator for &'a Window<'a, T> {
     type Item = &'a T;
     type IntoIter = WindowIter<'a, T>;
     fn into_iter(self) -> Self::IntoIter {
@@ -196,16 +215,14 @@ impl<'a, T> IntoIterator for &'a Window<'a, T>
     }
 }
 
-pub struct WindowIter<'a, T: 'a>
-{
+pub struct WindowIter<'a, T: 'a> {
     data: &'a [T],
     current_index: usize,
     // number of next() calls made which returned Some(_)
     iteration_num: usize,
 }
 
-impl<'a, T> Iterator for WindowIter<'a, T>
-{
+impl<'a, T> Iterator for WindowIter<'a, T> {
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -234,8 +251,7 @@ impl<'a, T> ExactSizeIterator for WindowIter<'a, T> {}
 #[cfg(nightly)]
 impl<'a, T> FusedIterator for WindowIter<'a, T> {}
 
-pub struct WindowIterMut<'a, T: 'a>
-{
+pub struct WindowIterMut<'a, T: 'a> {
     data: *mut T,
     data_len: usize,
     current_index: usize,
@@ -244,12 +260,16 @@ pub struct WindowIterMut<'a, T: 'a>
     _p: PhantomData<&'a T>,
 }
 
-impl<'a, T> Iterator for WindowIterMut<'a, T>
-{
+impl<'a, T> Iterator for WindowIterMut<'a, T> {
     type Item = &'a mut T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let current_element = unsafe { self.data.offset(self.current_index as isize).as_mut().unwrap() };
+        let current_element = unsafe {
+            self.data
+                .offset(self.current_index as isize)
+                .as_mut()
+                .unwrap()
+        };
 
         if self.iteration_num >= self.data_len {
             // the end was reached
@@ -277,7 +297,10 @@ impl<'a, T> FusedIterator for WindowIterMut<'a, T> {}
 // TODO add other stuff like DoubleEndedIterator etc.
 
 /// See [sliding_windows](index.html) for more information.
-pub struct Adaptor<'a, I: Iterator> where <I as Iterator>::Item: 'a {
+pub struct Adaptor<'a, I: Iterator>
+where
+    <I as Iterator>::Item: 'a,
+{
     iter: I,
     done: bool,
     storage: &'a Storage<I::Item>,
@@ -334,16 +357,14 @@ impl<'a, I: Iterator> Iterator for Adaptor<'a, I> {
         lower = match lower {
             0 => 0,
             x if x >= size => x - size + 1,
-            _ => 1
+            _ => 1,
         };
 
-        upper = upper.map(|upper|
-            match upper {
-                0 => 0,
-                x if x >= size => x - size + 1,
-                _ => 1
-            }
-        );
+        upper = upper.map(|upper| match upper {
+            0 => 0,
+            x if x >= size => x - size + 1,
+            _ => 1,
+        });
 
         (lower, upper)
     }
